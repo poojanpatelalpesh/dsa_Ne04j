@@ -231,9 +231,39 @@ public:
              
    }
 
-   void deleteReation(){
+   void deleteReation(const string& name1, const string& name2, const string& relationtype ){
+          //checking name1 or name2 exists or not.
+          if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
+            //getting relationship
+             Relationship* rel = edges[name1][name2];
+             //checking if relation type match or not.
+             if(rel->relation==relationtype){ 
+                 //first clearing all properties a relation have
+                 rel->properties.clear();
+
+                 //now deleting relation itself
+                 delete rel;
+                 
+                 edges[name1].erase(name2);
+
+                 //[what if name1 only have one relation with name2?]
+                 if (edges[name1].empty()) {
+                         edges.erase(name1);
+                     }
+
+                //[what if name1 and name2 have multiple relation]
+             }
+            else{
+               cout<<"rlation between "<<name1<<" and "<<name2<<" is not of type "<<relationtype<<endl;
+            }
+
+          }
+          else {
+             cout<<"Nodes not found"<<endl;
+          }
     
    }
+   //[what if we want to delete all relationship?]
      
    
      
