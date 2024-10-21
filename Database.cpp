@@ -43,6 +43,7 @@ public:
     void printProperty()
     {
         cout << "label:" << label << endl;
+        cout<< "name:" << name <<endl;
 
         for (auto &pair : properties)
         {
@@ -198,21 +199,32 @@ public:
        
    }
 
-   void getNodeProperty(){
+   void getNodeProperty(const string& name){
+
+                 if(nodes.find(name)!=nodes.end()){
+                       nodes[name]->printProperty();
+
+                 }
+                 else{
+                    cout<<name<<" not exist in Database."<<endl;
+                 }
+   }
+             
+   
+   
+   void getRelation(const string& name1, const string& name2){
+    
+    //checking name1 or name2 exists or not.
+          if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
+                     
+             return edges[name1][name2]->printRelation();
+          }
+          else{
+            cout<<"Relation not exists";
+          }
 
    }
-   void getRelation(const string& name1, const string& name2){
-       //checking existence of name1 or name2
-       if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end())
-       {
-           return edges[name1][name2]->printRelation();
-       }
-       else
-       {
-           cout << "Relation does not exist";
-       }
-   }
-   
+
    void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
                 // 1. Remove all outgoing relationships from this node
@@ -275,19 +287,16 @@ public:
     
    }
    //[what if we want to delete all relationship?]
-     
+
+   void cypherQuery(const string& query){
+
+   }
    
-     
 };
 
 int main()
 {
 
-    Graph g;
-
-    //testing
-
-    
 
     return 0;
 }
