@@ -289,6 +289,60 @@ public:
    //[what if we want to delete all relationship?]
 
    void cypherQuery(const string& query){
+       
+
+       if(query.substr(0,6)=="CREATE"){
+            //CREATE (n:Person {name: 'Alice'})
+            //CREATE (n:Person {name: 'Alice'}) SET n.age="30" 
+            
+         int labelStart = query.find(":")+1;
+         int labelEnd = query.find("{")-1;
+         
+         //getting label from query
+         string label = query.substr(labelStart,labelEnd-labelStart);
+         
+         //getting ID(name) from query
+
+         int IdStart = query.find("{")+1;
+         int IdEnd = query.find("}");
+         string IdString = query.substr(IdStart, IdEnd-IdStart);
+         
+         int nameStart = IdString.find("'")+1; 
+         int nameEnd = IdString.find("'",nameStart);
+         string name = IdString.substr(nameStart,nameEnd-nameStart);
+
+         //checking if CREATE is for addnode or update property.
+         //
+         if(query.find("SET")==string::npos){
+               //we have to add new node for given label and name.
+                
+                addNode(label,name);
+         }
+
+         else{
+            //"SET" exist we have to update property for given label and name
+            int propertyNameStart = query.find("n.")+2;
+            int propertyNameEnd = query.find("=");
+
+            string propertyName = query.substr(propertyNameStart,propertyNameEnd-propertyNameStart);
+            
+            int propertyValueStart = propertyNameEnd +2;
+            int propertyValueEnd = query.find('"',propertyValueStart);
+
+            string value =  query.substr(propertyValueStart,propertyValueEnd-propertyValueStart);
+
+            addNodeProperty(label,name,propertyName,value);
+
+         }
+        
+
+       }
+
+       else if(query.substr(0,5)=="MATCH"){
+ 
+       }
+
+       else cout<<"wrong query.";
 
    }
    
@@ -296,7 +350,20 @@ public:
 
 int main()
 {
+    Graph g;
+
+    while(true){
+
+    string query;
+    getline(cin,query);
+
+    if(query=="end") {break;}
+    else{     
+        g.cypherQuery(query);
+    }
 
 
+   }
+   
     return 0;
 }
