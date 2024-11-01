@@ -339,8 +339,52 @@ public:
        }
 
        else if(query.substr(0,5)=="MATCH"){
- 
-       }
+           int startIndex = query.find("(") + 1;
+           int endIndex = query.find(")") - 1;
+           string nodeDetails = query.substr(startIndex, endIndex - startIndex + 1);
+
+           // Extract label and properties
+          int labelStart = nodeDetails.find(":") + 1;
+          int labelEnd = nodeDetails.find("{") - 1;
+          string label = nodeDetails.substr(labelStart, labelEnd - labelStart);
+
+          int propertiesStart = nodeDetails.find("{") + 1;
+          int propertiesEnd = nodeDetails.find("}");
+          string propertiesString = nodeDetails.substr(propertiesStart, propertiesEnd - propertiesStart);
+
+          // Extract properties
+          unordered_map<string, string> properties;
+          size_t pos = 0;
+          while ((pos = propertiesString.find(",")) != string::npos) {
+                string prop = propertiesString.substr(0, pos);
+                int colonPos = prop.find(":");
+                string key = prop.substr(0, colonPos);
+                string value = prop.substr(colonPos + 1);
+                // Remove whitespace and quotes
+                key.erase(remove_if(key.begin(), key.end(), isspace), key.end());
+                value.erase(remove_if(value.begin(), value.end(), isspace), value.end());
+        if (value.front() == '\'' && value.back() == '\'') {
+                value = value.substr(1, value.size() - 2); // Remove quotes
+        }
+        properties[key] = value;
+        propertiesString.erase(0, pos + 1);
+    }
+
+    // Find nodes based on the label and properties
+    vector<Node*> matchedNodes = getNodesByLabel(label);
+    for (Node* node : matchedNodes) {
+        bool matches = true;
+        for (const auto& pair : properties) {
+            if (node->properties.find(pair.first) == node->properties.end() || node->properties[pair.first] != pair.second) {
+                matches = false;
+                break;
+            }
+        }
+        if (matches) {
+            node->printProperty(); // Print matching node properties
+        }
+    }
+}
 
        else cout<<"wrong query.";
 
