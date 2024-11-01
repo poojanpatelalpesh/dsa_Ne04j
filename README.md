@@ -60,7 +60,9 @@ CREATE (n:Person {name: 'Alice'}) SET n.age="30"
 MATCH (n:Person {name: 'Alice'})
 
 Query Syntax:
+
 CREATE: Add new nodes or set properties.
+
 MATCH: Retrieve nodes based on label and properties.
 
 Limitations:
