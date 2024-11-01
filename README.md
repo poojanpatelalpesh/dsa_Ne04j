@@ -1,4 +1,5 @@
 Graph Database Implementation:
+
 This project is a simple graph database implementation inspired by Neo4j, written in C++. It supports essential CRUD operations and basic graph traversal queries. The database allows users to create, read, update, and delete nodes (entities) and relationships (edges) between them.
 
 Features
@@ -33,30 +34,42 @@ Building and Running:
 To compile and run the code:
 
 1. Clone the repository:
+
 *bash*
+
 git clone https://github.com/yourusername/graph-database.git
 cd graph-database
 
 2. Compile the code:
+
 *bash*
+
 g++ -o graph_database main.cpp
 
 3. Run the executable:
+
 *bash*
+
 ./graph_database
 
 Example Commands:
 
 1. Create a Node:
+
 *css*
+
 CREATE (n:Person {name: 'Alice'})
 
 2. Set Node Property:
+
 *php*
+
 CREATE (n:Person {name: 'Alice'}) SET n.age="30"
 
 3. Match Nodes:
+
 *css*
+
 MATCH (n:Person {name: 'Alice'})
 
 Query Syntax:
