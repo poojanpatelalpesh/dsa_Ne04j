@@ -323,7 +323,41 @@ public:
    }
    //[what if we want to delete all relationship?]
 
-   void interpretQuery(string query){
+   void interpretQuery(const string& query){
+       
+       if(query.find("ADD_ENTITY{"==0)){
+             // Locate the opening and closing braces
+             int openBrace = query.find("{");
+             int closeBrace = query.find("}");
+
+             // Check for valid brace positions
+            if (openBrace == string::npos || closeBrace == string::npos || closeBrace < openBrace) {
+                   cout << "Error: Invalid query format." << endl;
+                   return;
+            }
+
+             // Extract the content inside the braces
+             string entityData = query.substr(openBrace + 1, closeBrace - openBrace - 1);
+        
+             // Split the entity data by comma
+             int commaPos = entityData.find(",");
+             if (commaPos == string::npos) {
+                 cout << "Error: Missing comma between label and name." << endl;
+                return;
+              }
+
+              // Extract label and name
+              string label = entityData.substr(0, commaPos);
+              string name = entityData.substr(commaPos + 1);
+
+               // Call the method to add the node
+               addNode(label, name);
+
+       }
+       else {
+        cout<<"Error: Unsupported query type."<<endl;
+       }
+
 
    }
    
