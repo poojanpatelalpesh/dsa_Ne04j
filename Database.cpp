@@ -1,57 +1,92 @@
 #include <iostream>
 #include <unordered_map>
-#include <unordered_set>
 #include <string>
+#include <sstream> // For stringstream
+#include <iomanip> // For std::setw and std::setfill
+#include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
-class Node
-{
+
+class Node {
 public:
-    // each node is a entity first we need label of entity it is just a type like person,car,organization.
-    // creating a label
+    // Each node represents an entity. The label indicates the type of entity,
+    // such as "Person", "Car", "Organization", etc.
     string label;
 
-    // uniqe indentity for each person.
+    // Unique identifier for the node, typically a name or ID.
     string name;
 
-    //[node may have more then one label?]
-
-    /*each node have some properties like if node is "person->then it haveage,height, salary, proffesion, etc. as properties"
-                                          if it is "product->then it have product_id,category,price,brand,stock_quantity,weight,
-                                          dimensions,color,material,warranty etc. as properties"
-    */
-    // we are storing all that properties using unordered map or hash map.
+    // A map to store various properties of the node.
+    // The key is the property name (string) and the value is the property value (string).
     unordered_map<string, string> properties;
-    //[what if we need to store integer value and we add them in future for two different nodes?]
 
-    // constructor
-    Node(string label, string name)
-    {
-        this->label = label;
-        this->name = name;
-    }
+    // Constructor to initialize a node with a label and name.
+    Node(const string& label, const string& name) : label(label), name(name) {}
 
-    // Function to add or update a property
-    void updateProperty(string key, string value)
-    { // passing by reference
+    // Function to add or update a property. This method allows setting properties
+    // dynamically based on key-value pairs, making it flexible for different entities.
+    void updateProperty(const string& key, const string& value) {
         properties[key] = value;
     }
 
-    // printing all node properties.
-    void printProperty()
-    {
-        cout << "label:" << label << endl;
-        cout<< "name:" << name <<endl;
-
-        for (auto &pair : properties)
-        {
-            cout << pair.first << ": " << pair.second << endl;
+    // Function to get a specific property by key.
+    // If the property exists, it prints its value in a formatted JSON style.
+    void getProperty(const string& key) const {
+        auto it = properties.find(key);
+        if (it != properties.end()) {
+            cout << "\"" << key << "\": \"" << it->second << "\"" << endl;
+        } else {
+            cout << "\"" << key << "\": null" << endl; // If the property does not exist
         }
     }
-    //[what if someone wants specific property?]
+
+    // Function to print all node properties in a readable JSON format.
+    void printProperties() const {
+        cout << "{" << endl;
+        cout << "  \"Label\": \"" << label << "\"," << endl;
+        cout << "  \"Name\": \"" << name << "\"," << endl;
+
+        // Print all properties stored in the unordered_map
+        cout << "  \"Properties\": {" << endl;
+
+        // Use an iterator to keep track of whether we're at the last element
+        auto it = properties.begin();
+        for (size_t i = 0; i < properties.size(); ++i, ++it) {
+            cout << "    \"" << it->first << "\": \"" << it->second << "\"";
+            // Check if we're not at the last element
+            if (i < properties.size() - 1) {
+                cout << ",";
+            }
+            cout << endl;
+        }
+        cout << "  }" << endl;
+        cout << "}" << endl;
+    }
+
+    // Function to delete a specific property by key.
+    // This method removes the property if it exists in the properties map.
+    void deleteProperty(const string& key) {
+        auto it = properties.find(key);
+        if (it != properties.end()) {
+            properties.erase(it); // Remove the property from the map
+            cout << "Property \"" << key << "\" deleted." << endl;
+        } else {
+            cout << "Property \"" << key << "\" does not exist." << endl; // If the property does not exist
+        }
+    }
+
+    // Function to delete all properties.
+    // This method clears the properties map, removing all properties associated with the node.
+    void clearProperties() {
+        properties.clear(); // Remove all properties from the map
+        cout << "All properties cleared." << endl;
+    }
 };
+
+
 
 class Relationship
 { 
@@ -202,7 +237,7 @@ public:
    void getNodeProperty(const string& name){
 
                  if(nodes.find(name)!=nodes.end()){
-                       nodes[name]->printProperty();
+                       nodes[name]->printProperties();
 
                  }
                  else{
@@ -288,105 +323,7 @@ public:
    }
    //[what if we want to delete all relationship?]
 
-   void cypherQuery(const string& query){
-       
-
-       if(query.substr(0,6)=="CREATE"){
-            //CREATE (n:Person {name: 'Alice'})
-            //CREATE (n:Person {name: 'Alice'}) SET n.age="30" 
-            
-         int labelStart = query.find(":")+1;
-         int labelEnd = query.find("{")-1;
-         
-         //getting label from query
-         string label = query.substr(labelStart,labelEnd-labelStart);
-         
-         //getting ID(name) from query
-
-         int IdStart = query.find("{")+1;
-         int IdEnd = query.find("}");
-         string IdString = query.substr(IdStart, IdEnd-IdStart);
-         
-         int nameStart = IdString.find("'")+1; 
-         int nameEnd = IdString.find("'",nameStart);
-         string name = IdString.substr(nameStart,nameEnd-nameStart);
-
-         //checking if CREATE is for addnode or update property.
-         //
-         if(query.find("SET")==string::npos){
-               //we have to add new node for given label and name.
-                
-                addNode(label,name);
-         }
-
-         else{
-            //"SET" exist we have to update property for given label and name
-            int propertyNameStart = query.find("n.")+2;
-            int propertyNameEnd = query.find("=");
-
-            string propertyName = query.substr(propertyNameStart,propertyNameEnd-propertyNameStart);
-            
-            int propertyValueStart = propertyNameEnd +2;
-            int propertyValueEnd = query.find('"',propertyValueStart);
-
-            string value =  query.substr(propertyValueStart,propertyValueEnd-propertyValueStart);
-
-            addNodeProperty(label,name,propertyName,value);
-
-         }
-        
-
-       }
-
-       else if(query.substr(0,5)=="MATCH"){
-           int startIndex = query.find("(") + 1;
-           int endIndex = query.find(")") - 1;
-           string nodeDetails = query.substr(startIndex, endIndex - startIndex + 1);
-
-           // Extract label and properties
-          int labelStart = nodeDetails.find(":") + 1;
-          int labelEnd = nodeDetails.find("{") - 1;
-          string label = nodeDetails.substr(labelStart, labelEnd - labelStart);
-
-          int propertiesStart = nodeDetails.find("{") + 1;
-          int propertiesEnd = nodeDetails.find("}");
-          string propertiesString = nodeDetails.substr(propertiesStart, propertiesEnd - propertiesStart);
-
-          // Extract properties
-          unordered_map<string, string> properties;
-          size_t pos = 0;
-          while ((pos = propertiesString.find(",")) != string::npos) {
-                string prop = propertiesString.substr(0, pos);
-                int colonPos = prop.find(":");
-                string key = prop.substr(0, colonPos);
-                string value = prop.substr(colonPos + 1);
-                // Remove whitespace and quotes
-                key.erase(remove_if(key.begin(), key.end(), isspace), key.end());
-                value.erase(remove_if(value.begin(), value.end(), isspace), value.end());
-        if (value.front() == '\'' && value.back() == '\'') {
-                value = value.substr(1, value.size() - 2); // Remove quotes
-        }
-        properties[key] = value;
-        propertiesString.erase(0, pos + 1);
-    }
-
-    // Find nodes based on the label and properties
-    vector<Node*> matchedNodes = getNodesByLabel(label);
-    for (Node* node : matchedNodes) {
-        bool matches = true;
-        for (const auto& pair : properties) {
-            if (node->properties.find(pair.first) == node->properties.end() || node->properties[pair.first] != pair.second) {
-                matches = false;
-                break;
-            }
-        }
-        if (matches) {
-            node->printProperty(); // Print matching node properties
-        }
-    }
-}
-
-       else cout<<"wrong query.";
+   void interpretQuery(string query){
 
    }
    
@@ -403,7 +340,7 @@ int main()
 
     if(query=="end") {break;}
     else{     
-        g.cypherQuery(query);
+        g.interpretQuery(query);
     }
 
 
