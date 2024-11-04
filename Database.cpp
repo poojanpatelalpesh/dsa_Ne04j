@@ -9,7 +9,6 @@
 
 using namespace std;
 
-
 class Node {
 public:
     // Each node represents an entity. The label indicates the type of entity,
@@ -87,7 +86,6 @@ public:
 };
 
 
-
 class Relationship
 { 
     public:
@@ -116,44 +114,46 @@ class Relationship
     }
 };
 
-// now we need to connect different nodes via realtion using graph.
 class Graph
 {
 
-    // making a list of all node with there name(id). using hash map.
-    unordered_map<string, Node *> nodes;
-
-    // Index for fast queries by label
-    unordered_map<string, unordered_set<Node *>> labelIndex;
-    //[what if someone want all nodes with purticular properties?].
+    // Maps each node's unique name to its Node object for easy lookup.
+    unordered_map<string, Node*> nodes;
+   
+    // Provides a label-based index for fast lookup of nodes by type.
+    // Each label (e.g., "Person") maps to a set of Node pointers that have that label.
+    unordered_map<string, unordered_set<Node*>> labelIndex;
 
     // Map of maps to store relationships, keyed by "from node name", then "to node name"
     unordered_map<string, unordered_map<string, Relationship*>> edges;
 
 public:
-    void addNode(const string label, const string name)
-    {
-        /// adding node into nodes.
-        Node *newNode = new Node(label, name);
-        nodes[name] = newNode;
-        //[what if two person have same name?]
-
-        // also adding in labelIndex.
-        labelIndex[label].insert(newNode); // if label already exixt  then it will add into that set otherwise it will create new pair.
+    
+    void addNode(const string& label, const string& name) {
+    // Check if a node with the same name already exists
+    if (nodes.find(name) != nodes.end()) {
+        cout << "Error: A node with the name \"" << name << "\" already exists." << endl;
+        return;
     }
 
-    void addNodeProperty(const string label, const string name, const string key, const string value)
-    { // key is property name and value is that property
-        if (nodes.find(name) != nodes.end())
-        {                                            // to find if node exists in graph or not
-            nodes[name]->updateProperty(key, value); // updating property of node
-        }
-        else
-        {
-            cout << "Node not exists" << endl;
-        }
-        //[what if i update labelIndex here for all properties?]
+    // Create a new Node and add it to the nodes map
+    Node* newNode = new Node(label, name);
+    nodes[name] = newNode;
+
+    // Insert the node into labelIndex for efficient lookup by label
+    labelIndex[label].insert(newNode); 
+  }
+
+
+    void addNodeProperty(const string& name, const string& key, const string& value) {
+    // Check if node exists in the graph using its unique name
+    auto it = nodes.find(name);
+    if (it != nodes.end()) {
+        it->second->updateProperty(key, value); // Update node's property
+    } else {
+         cout << "Error: Entity with name \"" << name << "\" does not exist." << endl;
     }
+  }
 
     void addRelationship(string name1, string name2, string relation)
     {
