@@ -124,6 +124,7 @@ class Graph
     // Each label (e.g., "Person") maps to a set of Node pointers that have that label.
     unordered_map<string, unordered_set<Node*>> labelIndex;
 
+
     // Map of maps to store relationships, keyed by "from node name", then "to node name"
     unordered_map<string, unordered_map<string, Relationship*>> edges;
 
@@ -154,6 +155,7 @@ public:
          cout << "Error: Entity with name \"" << name << "\" does not exist." << endl;
     }
   }
+
 
     void addRelationship(string name1, string name2, string relation)
     {
@@ -325,7 +327,8 @@ public:
 
    void interpretQuery(const string& query){
        
-       if(query.find("ADD_ENTITY{"==0)){
+       
+       if(query.find("ADD_ENTITY{")==0){
              // Locate the opening and closing braces
              int openBrace = query.find("{");
              int closeBrace = query.find("}");
@@ -350,10 +353,70 @@ public:
               string label = entityData.substr(0, commaPos);
               string name = entityData.substr(commaPos + 1);
 
-               // Call the method to add the node
-               addNode(label, name);
+              // Trim any leading or trailing whitespace
+              label.erase(0, label.find_first_not_of(" \n\r\t")); // Trim left
+              label.erase(label.find_last_not_of(" \n\r\t") + 1); // Trim right
+              name.erase(0, name.find_first_not_of(" \n\r\t")); // Trim left
+              name.erase(name.find_last_not_of(" \n\r\t") + 1); // Trim right
 
+              // Call the method to add the node
+              addNode(label, name);
        }
+       
+       
+       // Check for ADD_PROPERTY query
+       else if (query.find("ADD_PROPERTY{") == 0) {
+              int openBrace = query.find("{");
+              int closeBrace = query.find("}");
+
+              if (openBrace == string::npos || closeBrace == string::npos || closeBrace < openBrace) {
+                 cout << "Error: Invalid ADD_PROPERTY query format." << endl;
+                  return;
+              }
+
+              string propertyData = query.substr(openBrace + 1, closeBrace - openBrace - 1);
+              int commaPos = propertyData.find(",");
+
+              if (commaPos == string::npos) {
+                  cout << "Error: Missing comma between name and properties." << endl;
+                  return;
+              }
+
+              string name = propertyData.substr(0, commaPos);
+              string properties = propertyData.substr(commaPos + 1);
+
+              // Trim whitespace from name
+              name.erase(0, name.find_first_not_of(" \n\r\t"));
+              name.erase(name.find_last_not_of(" \n\r\t") + 1);
+
+              // Split properties by comma and process each key-value pair
+              stringstream ss(properties);
+              string keyValuePair;
+              while (getline(ss, keyValuePair, ',')) {
+                  int colonPos = keyValuePair.find(":");
+                  if (colonPos == string::npos) {
+                      cout << "Error: Invalid property format for '" << keyValuePair << "'." << endl;
+                      continue; // Skip this property and move to the next
+                  }
+
+                  string key = keyValuePair.substr(0, colonPos);
+                  string value = keyValuePair.substr(colonPos + 1);
+
+                  // Trim whitespace from key and value
+                  key.erase(0, key.find_first_not_of(" \n\r\t"));
+                  key.erase(key.find_last_not_of(" \n\r\t") + 1);
+                  value.erase(0, value.find_first_not_of(" \n\r\t")); 
+                  value.erase(value.find_last_not_of(" \n\r\t") + 1);
+
+                  // Add the property to the node
+                  addNodeProperty(name, key, value); // Assuming label is not needed here, or can be set to a default value
+                  
+             }
+               
+               getNodeProperty(name);
+               return; // Exit the function after processing ADD_PROPERTY
+       }
+
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
