@@ -220,18 +220,6 @@ public:
 
     }
 
-    Node* getNodeByName(const string& label,const string& name){
-         if (nodes.find(name) != nodes.end())    // to find if node exists in graph or not
-        {                                           
-              return nodes[name]; //[what different label have same name?]
-        }
-
-        else{
-           cout << "Node with name " << name << " not found!" << endl;
-           return nullptr;
-        }
-    }
-
     vector<Node*> getNodesByLabel(const string& label){
         vector<Node*> nodesWithSameLabel;
         if(labelIndex.find(label) != labelIndex.end()){
@@ -442,12 +430,12 @@ public:
             return;
         }
 
-        // Extract and trim the name
+        // Extract and trim the `name`
         string name = query.substr(nameStart, nameEnd - nameStart);
         name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
 
-        // Extract and trim the keys string
+        // Extract and trim the `keys` string
         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
         keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
