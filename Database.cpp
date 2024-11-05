@@ -188,6 +188,43 @@ public:
     cout << "\n  }\n";
     cout << "}" << endl;
    }
+  
+    void deleteNodeProperty(const string& name, const vector<string>& keys) {
+    // Check if node exists
+    if (nodes.find(name) == nodes.end()) {
+        cout << "Error: Node '" << name << "' not found in the database." << endl;
+        return;
+    }
+
+    Node* node = nodes[name];
+
+    // Check if the keys contain "ALL"
+    if (keys.size() == 1 && keys[0] == "ALL") {
+        // Clear all properties if "ALL" is specified
+        node->clearProperties();
+        cout << "All properties for node '" << name << "' have been cleared." << endl;
+        return;
+    }
+
+    // Iterate through each key and delete if it exists
+    bool anyKeyFound = false;
+    for (const string& key : keys) {
+        if (node->properties.find(key) != node->properties.end()) {
+            // Delete the specific property if it exists
+            node->deleteProperty(key);
+            anyKeyFound = true;
+        } else {
+            cout << "Warning: Property '" << key << "' not found for node '" << name << "'." << endl;
+        }
+    }
+
+    // If none of the specified keys were found, notify the user
+    if (!anyKeyFound) {
+        cout << "Error: None of the specified properties were found for node '" << name << "'." << endl;
+    } else {
+        cout << "Specified properties for node '" << name << "' have been deleted where found." << endl;
+    }
+}
 
     void addRelationship(string name1, string name2, string relation)
     {
@@ -430,12 +467,12 @@ public:
             return;
         }
 
-        // Extract and trim the `name`
+        // Extract and trim the name
         string name = query.substr(nameStart, nameEnd - nameStart);
         name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
 
-        // Extract and trim the `keys` string
+        // Extract and trim the keys string
         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
         keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
