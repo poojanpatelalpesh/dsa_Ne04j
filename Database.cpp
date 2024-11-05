@@ -206,7 +206,7 @@ public:
         }
     }
 
-     void addRelationProperty(const string name1, const string name2, const string key, const string value)
+    void addRelationProperty(const string name1, const string name2, const string key, const string value)
     { // key is property name and value is that property
         if (edges.find(name1) != edges.end() && edges.find(name2) != edges.end())      // to find if edge exists in graph or not
         {                                                                               
@@ -247,9 +247,7 @@ public:
         return nodesWithSameLabel;
     }
 
-   
-   
-   void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
+    void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(edges.find(name)!=edges.end()){
         //iterating over nodes that are connected to given name.
          cout<<"related Nodes to " <<name<<" are : ";
@@ -267,12 +265,8 @@ public:
        }    
        
    }
-
-   
-             
-   
-   
-   void getRelation(const string& name1, const string& name2){
+           
+    void getRelation(const string& name1, const string& name2){
     
     //checking name1 or name2 exists or not.
           if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
@@ -285,7 +279,7 @@ public:
 
    }
 
-   void deleteNode(const string label, const string name){
+    void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
                 // 1. Remove all outgoing relationships from this node
                   edges.erase(name);
@@ -314,7 +308,7 @@ public:
              
    }
 
-   void deleteReation(const string& name1, const string& name2, const string& relationtype ){
+    void deleteReation(const string& name1, const string& name2, const string& relationtype ){
           //checking name1 or name2 exists or not.
           if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
             //getting relationship
@@ -348,9 +342,9 @@ public:
    }
    //[what if we want to delete all relationship?]
 
-   void interpretQuery(const string& query){
+    void interpretQuery(const string& query){
        
-       
+       //check for ADD_ENTITY query
        if(query.find("ADD_ENTITY{")==0){
              // Locate the opening and closing braces
              int openBrace = query.find("{");
@@ -385,8 +379,7 @@ public:
               // Call the method to add the node
               addNode(label, name);
        }
-       
-       
+        
        // Check for ADD_PROPERTY query
        else if (query.find("ADD_PROPERTY{") == 0) {
               int openBrace = query.find("{");
@@ -438,6 +431,55 @@ public:
                
                return; // Exit the function after processing ADD_PROPERTY
        }
+
+       //check for GET_INFO query
+       else if (query.find("GET_INFO{") == 0) {
+        int nameStart = query.find("{") + 1;
+        int nameEnd = query.find(",", nameStart);
+
+        if (nameEnd == string::npos) {
+            cout << "Error: Malformed GET_INFO query - missing comma after name." << endl;
+            return;
+        }
+
+        // Extract and trim the name
+        string name = query.substr(nameStart, nameEnd - nameStart);
+        name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+        name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+
+        // Extract and trim the keys string
+        string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
+        keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+        keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+
+        if (name.empty() || keysStr.empty()) {
+            cout << "Error: Malformed GET_INFO query - name or keys missing." << endl;
+            return;
+        }
+
+        vector<string> keys;
+        if (keysStr == "ALL") {
+            keys.push_back("ALL");
+        } else {
+            stringstream ss(keysStr);
+            string key;
+            while (getline(ss, key, ',')) {
+                // Trim each key
+                key.erase(0, key.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+                key.erase(key.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+
+                if (key.empty()) {
+                    cout << "Error: Malformed GET_INFO query - empty key found." << endl;
+                    return;
+                }
+                keys.push_back(key);
+            }
+        }
+
+        // Retrieve properties
+        getNodeProperty(name, keys);
+    }
+       
 
        else {
         cout<<"Error: Unsupported query type."<<endl;
