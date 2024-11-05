@@ -505,7 +505,49 @@ public:
         getNodeProperty(name, keys);
     }
        
+       //check for DELETE_INFO query
+       else if (query.find("DELETE_INFO{") == 0) {
+         // Parse DELETE_INFO query
+         int nameStart = query.find("{") + 1;
+         int nameEnd = query.find(",", nameStart);
 
+         if (nameEnd == string::npos) {
+             cout << "Error: Malformed DELETE_INFO query - missing comma after name." << endl;
+             return;
+         }
+
+         string name = query.substr(nameStart, nameEnd - nameStart);
+         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
+     
+         if (name.empty() || keysStr.empty()) {
+             cout << "Error: Malformed DELETE_INFO query - name or keys missing." << endl;
+             return;
+         }
+
+         // Trim whitespace from name and keys
+         name.erase(remove_if(name.begin(), name.end(), ::isspace), name.end());
+         keysStr.erase(remove_if(keysStr.begin(), keysStr.end(), ::isspace), keysStr.end());
+
+         vector<string> keys;
+
+         if (keysStr == "ALL") {
+             keys.push_back("ALL");
+         } else {
+             stringstream ss(keysStr);
+          string key;
+         while (getline(ss, key, ',')) {
+            if (key.empty()) {
+                cout << "Error: Malformed DELETE_INFO query - empty key found." << endl;
+                return;
+            }
+            keys.push_back(key);
+         }
+       }
+
+        // Call the deleteNodeProperty function with the name and keys
+        deleteNodeProperty(name, keys);
+      }
+  
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
