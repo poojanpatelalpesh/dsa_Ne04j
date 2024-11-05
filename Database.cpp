@@ -226,6 +226,36 @@ public:
     }
 }
 
+    void getNodesByLabel(const string& label) {
+    // Check if the label exists in the index
+    auto it = labelIndex.find(label);
+    if (it != labelIndex.end()) {
+        // Start JSON object
+        cout << "{" << endl;
+        cout << "  \"label\": \"" << label << "\"," << endl;
+        cout << "  \"entities\": [" << endl;
+
+        int count = 0;
+        int totalNodes = it->second.size();
+
+        for (auto node : it->second) {
+            // Print each node's name
+            cout << "    \"" << node->name << "\"";
+
+            // Add a comma if this is not the last node
+            if (++count < totalNodes) {
+                cout << ",";
+            }
+            cout << endl;
+        }
+
+        cout << "  ]" << endl; // Close the entities array
+        cout << "}" << endl;   // Close the JSON object
+    } else {
+        cout << "Error: Label \"" << label << "\" does not exist." << endl;
+    }
+}
+
     void addRelationship(string name1, string name2, string relation)
     {
         if (nodes.find(name1) != nodes.end() && nodes.find(name2) != nodes.end())   // to find if name1 and name2 exists in graph or not
@@ -255,21 +285,6 @@ public:
             cout << "No relation found" << endl;
         }
 
-    }
-
-    vector<Node*> getNodesByLabel(const string& label){
-        vector<Node*> nodesWithSameLabel;
-        if(labelIndex.find(label) != labelIndex.end()){
-             for(auto node:labelIndex[label]){
-                nodesWithSameLabel.push_back(node);
-             }
-
-        }
-        else{
-            cout << "label not exist." ;
-            
-        }
-        return nodesWithSameLabel;
     }
 
     void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
