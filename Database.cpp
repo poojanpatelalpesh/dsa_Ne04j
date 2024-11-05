@@ -145,7 +145,6 @@ public:
     labelIndex[label].insert(newNode); 
   }
 
-
     void addNodeProperty(const string& name, const string& key, const string& value) {
     // Check if node exists in the graph using its unique name
     auto it = nodes.find(name);
@@ -156,6 +155,39 @@ public:
     }
   }
 
+    void getNodeProperty(const string& name, const vector<string>& keys) {
+    // Check if the node exists in the graph
+    if (nodes.find(name) == nodes.end()) {
+        cout << "Error: Node \"" << name << "\" does not exist in the database." << endl;
+        return;
+    }
+
+    Node* node = nodes[name]; // Retrieve the node
+
+    // If "ALL" is specified in the keys, print all properties
+    if (keys.size() == 1 && keys[0] == "ALL") {
+        node->printProperties();
+        return;
+    }
+
+    // If specific keys are provided, iterate through each key and print each property
+    cout << "{\n";
+    cout << "  \"Name\": \"" << name << "\",\n";
+    cout << "  \"Properties\": {\n";
+
+    bool firstProperty = true;
+    for (const auto& key : keys) {
+        if (!firstProperty) {
+            cout << ",\n";
+        }
+        cout << "    ";
+        node->getProperty(key); // Display each property
+        firstProperty = false;
+    }
+
+    cout << "\n  }\n";
+    cout << "}" << endl;
+   }
 
     void addRelationship(string name1, string name2, string relation)
     {
@@ -215,7 +247,7 @@ public:
         return nodesWithSameLabel;
     }
 
-   // [what if we want to retrive nodes with specific property like  marks,age,etc?];
+   
    
    void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(edges.find(name)!=edges.end()){
@@ -236,16 +268,7 @@ public:
        
    }
 
-   void getNodeProperty(const string& name){
-
-                 if(nodes.find(name)!=nodes.end()){
-                       nodes[name]->printProperties();
-
-                 }
-                 else{
-                    cout<<name<<" not exist in Database."<<endl;
-                 }
-   }
+   
              
    
    
@@ -413,7 +436,6 @@ public:
                   
              }
                
-               getNodeProperty(name);
                return; // Exit the function after processing ADD_PROPERTY
        }
 
