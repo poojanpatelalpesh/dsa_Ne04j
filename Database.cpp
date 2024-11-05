@@ -563,6 +563,35 @@ public:
         deleteNodeProperty(name, keys);
       }
   
+       else if (query.find("GET_LABELED{") == 0) {
+            // Parse GET_LABELED query
+            int labelStart = query.find("{") + 1; // Start after the opening brace
+            int labelEnd = query.find("}", labelStart); // Find the closing brace
+
+            // Check for malformed query
+            if (labelEnd == string::npos) {
+               cout << "Error: Malformed GET_LABELED query - missing closing brace." << endl;
+               return;
+           }
+    
+           // Extract the label
+           string label = query.substr(labelStart, labelEnd - labelStart);
+   
+            // Trim whitespace
+            label.erase(0, label.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+            label.erase(label.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+
+            // Check if the label is empty after trimming
+            if (label.empty()) {
+                cout << "Error: Malformed GET_LABELED query - label is missing." << endl;
+                return;
+            }
+
+           // Retrieve nodes by label and print them in JSON format
+            getNodesByLabel(label);
+      }
+
+        
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
