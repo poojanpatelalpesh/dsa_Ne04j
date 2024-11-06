@@ -88,29 +88,69 @@ public:
 
 class Relationship
 { 
-    public:
-
-    // this class made a relation between two nodes.relation like friends,purchased,likes etc.
+public:
+    // This class represents a relationship between two nodes, like "friends", "purchased", "likes", etc.
     string relation;
-    //[what if there are more then one type].
 
-    // properties of relationship
+    // Properties of the relationship
     unordered_map<string, string> properties;
 
-    // constructor
-    Relationship(string relation)
-    {
-        this->relation = relation;
-    }
+    // Constructor to initialize a relationship with a specific relation type
+    Relationship(const string& relationType)
+        : relation(relationType) {}
 
-    void updateProperty(const string key, const string value)
+    // Method to update or add a property of the relationship
+    void setProperty(const string& key, const string& value)
     {
         properties[key] = value;
     }
 
-    void printRelation()
+    // Method to remove a specific property by key
+    void removeProperty(const string& key)
     {
-        cout << "Relationship:" << relation << endl;
+        auto it = properties.find(key);
+        if (it != properties.end()) {
+            properties.erase(it); // Remove the specific property
+            cout << "Property \"" << key << "\" has been removed." << endl;
+        } else {
+            cout << "Property \"" << key << "\" does not exist." << endl;
+        }
+    }
+
+    // Method to clear all properties from the relationship and provide feedback
+    void clearProperties()
+    {
+        properties.clear();
+        cout << "All properties have been cleared." << endl;
+    }
+
+    // Method to retrieve a property value by key
+    string getProperty(const string& key) const
+    {
+        auto it = properties.find(key);
+        if (it != properties.end()) {
+            return it->second; // Return the property value if found
+        }
+        return ""; // Return empty if not found
+    }
+
+    // Method to print the relationship information
+    void displayRelationship() const
+    {
+        cout << "Relationship: " << relation << endl;
+        if (!properties.empty()) {
+            cout << "Properties: {" << endl;
+            for (auto it = properties.begin(); it != properties.end(); ++it) {
+                cout << "  \"" << it->first << "\": \"" << it->second << "\"";
+                if (std::next(it) != properties.end()) {
+                    cout << ","; // Add comma only if it's not the last element
+                }
+                cout << endl;
+            }
+            cout << "}" << endl;
+        } else {
+            cout << "No properties." << endl; // Indicate if no properties exist
+        }
     }
 };
 
@@ -278,7 +318,7 @@ public:
         if (edges.find(name1) != edges.end() && edges.find(name2) != edges.end())      // to find if edge exists in graph or not
         {                                                                               
                 Relationship* type = edges[name1][name2];
-                type->updateProperty(key,value); // updating property of relationship
+                type->setProperty(key,value); // updating property of relationship
         }
         else
         {
@@ -311,7 +351,7 @@ public:
     //checking name1 or name2 exists or not.
           if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
                      
-             return edges[name1][name2]->printRelation();
+             return edges[name1][name2]->displayRelationship();
           }
           else{
             cout<<"Relation not exists";
