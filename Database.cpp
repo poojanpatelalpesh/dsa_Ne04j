@@ -318,19 +318,30 @@ public:
     }
 }
 
-    void addRelationProperty(const string name1, const string name2, const string key, const string value)
-    { // key is property name and value is that property
-        if (relationships.find(name1) != relationships.end() && relationships.find(name2) != relationships.end())      // to find if edge exists in graph or not
-        {                                                                               
-                Relationship* type = relationships[name1][name2];
-                type->setProperty(key,value); // updating property of relationship
-        }
-        else
-        {
-            cout << "No relation found" << endl;
-        }
-
+    void addRelationshipProperty(const string& name1, const string& name2, const string& key, const string& value) {
+    // Check if the nodes and relationship exist in the graph
+    if (relationships.find(name1) == relationships.end()) {
+        cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
+        return;
     }
+    
+    if (relationships[name1].find(name2) == relationships[name1].end()) {
+        cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
+        return;
+    }
+
+    // Retrieve the existing relationship between name1 and name2
+    Relationship* relationship = relationships[name1][name2];
+    if (!relationship) {
+        cout << "Error: Relationship object is null." << endl;
+        return;
+    }
+
+    // Set or update the specified property of the relationship
+    relationship->setProperty(key, value);
+    cout << "Property \"" << key << "\" set to \"" << value << "\" for relationship between \"" 
+         << name1 << "\" and \"" << name2 << "\"." << endl;
+}
 
     void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(relationships.find(name)!=relationships.end()){
