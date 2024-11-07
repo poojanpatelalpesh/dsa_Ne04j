@@ -87,7 +87,7 @@ public:
 
 
 class Relationship
-{ 
+{
 public:
     // This class represents a relationship between two nodes, like "friends", "purchased", "likes", etc.
     string relation;
@@ -167,7 +167,7 @@ class Graph
     unordered_map<string, unordered_map<string, Relationship*>> relationships;
 
 public:
-    
+   
     void addNode(const string& label, const string& name) {
     // Check if a node with the same name already exists
     if (nodes.find(name) != nodes.end()) {
@@ -180,7 +180,7 @@ public:
     nodes[name] = newNode;
 
     // Insert the node into labelIndex for efficient lookup by label
-    labelIndex[label].insert(newNode); 
+    labelIndex[label].insert(newNode);
   }
 
     void addNodeProperty(const string& name, const string& key, const string& value) {
@@ -226,7 +226,7 @@ public:
     cout << "\n  }\n";
     cout << "}" << endl;
    }
-  
+ 
     void deleteNodeProperty(const string& name, const vector<string>& keys) {
     // Check if node exists
     if (nodes.find(name) == nodes.end()) {
@@ -323,7 +323,7 @@ public:
         cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
         return;
     }
-    
+   
     if (relationships[name1].find(name2) == relationships[name1].end()) {
         cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
         return;
@@ -338,11 +338,11 @@ public:
 
     // Set or update the specified property of the relationship
     relationship->setProperty(key, value);
-    cout << "Property \"" << key << "\" set to \"" << value << "\" for relationship between \"" 
+    cout << "Property \"" << key << "\" set to \"" << value << "\" for relationship between \""
          << name1 << "\" and \"" << name2 << "\"." << endl;
 }
 
-    void getRelationshipProperty(const string& name1, const string& name2, const vector<string>& keys) { 
+    void getRelationshipProperty(const string& name1, const string& name2, const vector<string>& keys) {
     // Check if there are relationships for name1
     if (relationships.find(name1) == relationships.end()) {
         cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
@@ -407,7 +407,7 @@ public:
         return;
     }
 
-    // If the only key in `keys` is "ALL", clear all properties
+    // If the only key in keys is "ALL", clear all properties
     if (keys.size() == 1 && keys[0] == "ALL") {
         relationship->clearProperties();
     } else {
@@ -473,7 +473,7 @@ public:
             //getting relationship
              Relationship* rel = relationships[name1][name2];
              //checking if relation type match or not.
-             if(rel->relation==relationtype){ 
+             if(rel->relation==relationtype){
                  //first clearing all properties a relation have
                  rel->properties.clear();
 
@@ -497,7 +497,7 @@ public:
           else {
              cout<<"Nodes not found"<<endl;
           }
-    
+   
    }
    //[what if we want to delete all relationship?]
 
@@ -517,7 +517,7 @@ public:
 
              // Extract the content inside the braces
              string entityData = query.substr(openBrace + 1, closeBrace - openBrace - 1);
-        
+       
              // Split the entity data by comma
              int commaPos = entityData.find(",");
              if (commaPos == string::npos) {
@@ -538,7 +538,7 @@ public:
               // Call the method to add the node
               addNode(label, name);
        }
-        
+       
        // Check for ADD_PROPERTY query
        else if (query.find("ADD_PROPERTY{") == 0) {
               int openBrace = query.find("{");
@@ -580,12 +580,12 @@ public:
                   // Trim whitespace from key and value
                   key.erase(0, key.find_first_not_of(" \n\r\t"));
                   key.erase(key.find_last_not_of(" \n\r\t") + 1);
-                  value.erase(0, value.find_first_not_of(" \n\r\t")); 
+                  value.erase(0, value.find_first_not_of(" \n\r\t"));
                   value.erase(value.find_last_not_of(" \n\r\t") + 1);
 
                   // Add the property to the node
                   addNodeProperty(name, key, value); // Assuming label is not needed here, or can be set to a default value
-                  
+                 
              }
                
                return; // Exit the function after processing ADD_PROPERTY
@@ -601,12 +601,12 @@ public:
             return;
         }
 
-        // Extract and trim the `name`
+        // Extract and trim the name
         string name = query.substr(nameStart, nameEnd - nameStart);
         name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
 
-        // Extract and trim the `keys` string
+        // Extract and trim the keys string
         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
         keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
@@ -693,7 +693,7 @@ public:
                cout << "Error: Malformed GET_LABELED query - missing closing brace." << endl;
                return;
            }
-    
+   
            // Extract the label
            string label = query.substr(labelStart, labelEnd - labelStart);
    
@@ -710,22 +710,22 @@ public:
            // Retrieve nodes by label and print them in JSON format
             getNodesByLabel(label);
       }
-      
+     
        //check for ADD_r query
        else if (query.find("ADD_r{") == 0) {
              // Find the start and end of the curly braces
              int startPos = query.find("{") + 1; // Position just after '{'
              int endPos = query.find("}");
-    
+   
              // Check if curly braces are correctly placed
              if (endPos == string::npos) {
                  cout << "Error: Malformed ADD_r query - missing closing brace." << endl;
                  return;
              }
-    
+   
              // Extract the content between the braces
              string content = query.substr(startPos, endPos - startPos);
-    
+   
              // Split the content by commas
             stringstream ss(content);
             string name1, name2, relation;
@@ -760,7 +760,7 @@ public:
             // Extracting the main part of the query
             int nameStart = query.find("{") + 1;
             int nameEnd = query.find(",", nameStart);
-        
+       
             if (nameEnd == string::npos) {
                 cout << "Error: Malformed ADD_r_PROPERTY query - missing comma after Name1." << endl;
                 return;
@@ -806,7 +806,7 @@ public:
                   cout << "Error: Empty key or value in property pair \"" << pair << "\"." << endl;
                return;
                }
-  
+ 
               // Add or update the relationship property
               addRelationshipProperty(name1, name2, key, value);
           }
@@ -873,6 +873,50 @@ public:
                getRelationshipProperty(name1, name2, keys);
        }
 
+       else if (query.find("DELETE_r_INFO{") == 0) {
+    // Extract the content between the curly braces
+    int start = query.find("{") + 1;
+    int end = query.find("}", start);
+    if (end == string::npos) {
+        cout << "Error: Malformed DELETE_r_INFO query - missing closing brace." << endl;
+        return;
+    }
+
+    string content = query.substr(start, end - start);
+
+    // Split content by commas to separate name1, name2, and keys
+    stringstream ss(content);
+    string item;
+    vector<string> parts;
+    while (getline(ss, item, ',')) {
+        // Trim whitespace around each item
+        item.erase(0, item.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+        item.erase(item.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+        if (item.empty()) {
+            cout << "Error: Malformed DELETE_r_INFO query - empty fields found." << endl;
+            return;
+        }
+        parts.push_back(item);
+    }
+
+    // Validate that we have at least 3 parts: name1, name2, and one key or "ALL"
+    if (parts.size() < 3) {
+        cout << "Error: DELETE_r_INFO query requires at least a source node, target node, and at least one key or 'ALL'." << endl;
+        return;
+    }
+
+    // Extract name1 and name2
+    string name1 = parts[0];
+    string name2 = parts[1];
+
+    // Collect keys (or check if it's "ALL")
+    vector<string> keys(parts.begin() + 2, parts.end());
+
+    // Call deleteRelationshipProperty with parsed values
+    deleteRelationshipProperty(name1, name2, keys);
+}
+
+
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
@@ -883,3 +927,21 @@ public:
 };
 
 int main()
+{
+    Graph g;
+
+    while(true){
+
+    string query;
+    getline(cin,query);
+
+    if(query=="end") {break;}
+    else{    
+        g.interpretQuery(query);
+    }
+
+
+   }
+   
+    return 0;
+}
