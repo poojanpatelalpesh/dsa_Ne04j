@@ -457,7 +457,7 @@ public:
     }
 }
     
-    void retrieveRelatedNodes(const string& name, const vector<string>& relations) {
+     void retrieveRelatedNodes(const string& name, const vector<string>& relations) {
     // Check if the specified node exists in the graph
     auto nodeIt = nodes.find(name);
     if (nodeIt == nodes.end()) {
@@ -476,7 +476,7 @@ public:
             if (relations.empty() || 
                 (relations.size() == 1 && relations[0] == "ALL") || 
                 (std::find(relations.begin(), relations.end(), it.second->relation) != relations.end())) {
-                cout << "{\"node\": \"" << it.first << "\", \"relationship\": \"" << it.second->relation << "\"}, ";
+                cout << "{\"name\": \"" << it.first << "\", \"relationship\": \"" << it.second->relation << "\"}, ";
                 found = true;
             }
         }
@@ -491,7 +491,6 @@ public:
 
     cout << "]}" << endl; // Closing JSON array and object
 }
-
 
  /*       void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
@@ -556,6 +555,7 @@ public:
    }
    //[what if we want to delete all relationship?]
 */
+ 
     void interpretQuery(const string& query){
        
        //check for ADD_ENTITY query
@@ -927,7 +927,8 @@ public:
              // Retrieve relationship properties
                getRelationshipProperty(name1, name2, keys);
        }
-
+        
+       //check for DELETE_r_INFO query 
        else if (query.find("DELETE_r_INFO{") == 0) {
     // Extract the content between the curly braces
     int start = query.find("{") + 1;
@@ -971,7 +972,54 @@ public:
     deleteRelationshipProperty(name1, name2, keys);
 }
 
+       //check for FIND query
+       else if (query.find("FIND{") == 0) {
+        // Extract the content between the curly braces
+        int start = query.find("{") + 1;
+        int end = query.find("}", start);
+        if (end == string::npos) {
+            cout << "{\"error\": \"Malformed FIND query - missing closing brace.\"}" << endl;
+            return;
+        }
 
+        string content = query.substr(start, end - start);
+
+        // Split content by commas to separate name and relations
+        stringstream ss(content);
+        string item;
+        vector<string> parts;
+        while (getline(ss, item, ',')) {
+            // Trim whitespace around each item
+            item.erase(0, item.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+            item.erase(item.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+            if (item.empty()) {
+                cout << "{\"error\": \"Malformed FIND query - empty fields found.\"}" << endl;
+                return;
+            }
+            parts.push_back(item);
+        }
+
+        // Ensure we have at least a node name
+        if (parts.size() < 1) {
+            cout << "{\"error\": \"FIND query requires at least a node name.\"}" << endl;
+            return;
+        }
+
+        // Extract the name
+        string name = parts[0];
+
+        // Collect relationships or check if it's "ALL"
+        vector<string> relations(parts.begin() + 1, parts.end());
+
+        // Handle "ALL" keyword
+        if (relations.size() == 1 && relations[0] == "ALL") {
+            relations.clear(); // Clear to indicate all relationships
+        }
+
+        // Call retrieveRelatedNodes with parsed values
+        retrieveRelatedNodes(name, relations);
+    } 
+       
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
