@@ -164,9 +164,8 @@ class Graph
     // Each label (e.g., "Person") maps to a set of Node pointers that have that label.
     unordered_map<string, unordered_set<Node*>> labelIndex;
 
-
-    // Map of maps to store relationships, keyed by "from node name", then "to node name"
-    unordered_map<string, unordered_map<string, Relationship*>> edges;
+    // Stores relationships between nodes, keyed by "from node name" and "to node name".
+    unordered_map<string, unordered_map<string, Relationship*>> relationships;
 
 public:
     
@@ -296,28 +295,34 @@ public:
     }
 }
 
-    void addRelationship(string name1, string name2, string relation)
-    {
-        if (nodes.find(name1) != nodes.end() && nodes.find(name2) != nodes.end())   // to find if name1 and name2 exists in graph or not
-        { 
-            Relationship* type = new Relationship(relation);
-
-            edges[name1][name2]=type;
-
-            //[what if two same node have multiple relationship?].
-
-        }
-        else
-        {
-            cout << "data not matched";
-        }
+    void addRelationship(const string& nodeName1, const string& nodeName2, const string& relationshipType) {
+    // Check if both nodes exist in the graph
+    if (nodes.find(nodeName1) == nodes.end() || nodes.find(nodeName2) == nodes.end()) {
+        cout << "Error: One or both nodes not found in the graph." << endl;
+        return; // Exit the function if either node does not exist
     }
+
+    // Check if the relationship already exists
+    auto it = relationships[nodeName1].find(nodeName2);
+    if (it != relationships[nodeName1].end()) {
+        // Update the existing relationship type
+        it->second->relation = relationshipType; // Update the relationship type
+        cout << "Updated relationship between " << nodeName1 << " and " << nodeName2 << " to " << relationshipType << "." << endl;
+    } else {
+        // Create a new relationship
+        Relationship* newRelationship = new Relationship(relationshipType);
+
+        // Store the relationship in the relationships map
+        relationships[nodeName1][nodeName2] = newRelationship;
+        cout << "Added relationship between " << nodeName1 << " and " << nodeName2 << " as " << relationshipType << "." << endl;
+    }
+}
 
     void addRelationProperty(const string name1, const string name2, const string key, const string value)
     { // key is property name and value is that property
-        if (edges.find(name1) != edges.end() && edges.find(name2) != edges.end())      // to find if edge exists in graph or not
+        if (relationships.find(name1) != relationships.end() && relationships.find(name2) != relationships.end())      // to find if edge exists in graph or not
         {                                                                               
-                Relationship* type = edges[name1][name2];
+                Relationship* type = relationships[name1][name2];
                 type->setProperty(key,value); // updating property of relationship
         }
         else
@@ -328,10 +333,10 @@ public:
     }
 
     void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
-       if(edges.find(name)!=edges.end()){
+       if(relationships.find(name)!=relationships.end()){
         //iterating over nodes that are connected to given name.
          cout<<"related Nodes to " <<name<<" are : ";
-            for(const auto& it: edges[name]){
+            for(const auto& it: relationships[name]){
                  //[what if iteration over all different kind of relationships of two connected nodes?]
                  if(it.second->relation==relation){  //if relation match with given relation.
                     cout<<it.first<<", ";
@@ -349,9 +354,9 @@ public:
     void getRelation(const string& name1, const string& name2){
     
     //checking name1 or name2 exists or not.
-          if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
+          if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
                      
-             return edges[name1][name2]->displayRelationship();
+             return relationships[name1][name2]->displayRelationship();
           }
           else{
             cout<<"Relation not exists";
@@ -362,10 +367,10 @@ public:
     void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
                 // 1. Remove all outgoing relationships from this node
-                  edges.erase(name);
+                  relationships.erase(name);
 
                // 2. Remove all incoming relationships to this node
-                for (auto &it : edges) {
+                for (auto &it : relationships) {
                        it.second.erase(name);
                     }
              
@@ -390,9 +395,9 @@ public:
 
     void deleteReation(const string& name1, const string& name2, const string& relationtype ){
           //checking name1 or name2 exists or not.
-          if(edges.find(name1)!=edges.end() && edges[name1].find(name2)!=edges[name2].end()){
+          if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
             //getting relationship
-             Relationship* rel = edges[name1][name2];
+             Relationship* rel = relationships[name1][name2];
              //checking if relation type match or not.
              if(rel->relation==relationtype){ 
                  //first clearing all properties a relation have
@@ -401,11 +406,11 @@ public:
                  //now deleting relation itself
                  delete rel;
                  
-                 edges[name1].erase(name2);
+                 relationships[name1].erase(name2);
 
                  //[what if name1 only have one relation with name2?]
-                 if (edges[name1].empty()) {
-                         edges.erase(name1);
+                 if (relationships[name1].empty()) {
+                         relationships.erase(name1);
                      }
 
                 //[what if name1 and name2 have multiple relation]
