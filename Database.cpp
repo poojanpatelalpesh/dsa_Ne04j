@@ -456,28 +456,44 @@ public:
         }
     }
 }
+    
+    void retrieveRelatedNodes(const string& name, const vector<string>& relations) {
+    // Check if the specified node exists in the graph
+    auto nodeIt = nodes.find(name);
+    if (nodeIt == nodes.end()) {
+        cout << "{\"error\": \"Node with name \\\"" << name << "\\\" does not exist.\"}" << endl;
+        return;
+    }
 
+    cout << "{\"related_nodes\": [";
 
- /*   void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
-       if(relationships.find(name)!=relationships.end()){
-        //iterating over nodes that are connected to given name.
-         cout<<"related Nodes to " <<name<<" are : ";
-            for(const auto& it: relationships[name]){
-                 //[what if iteration over all different kind of relationships of two connected nodes?]
-                 if(it.second->relation==relation){  //if relation match with given relation.
-                    cout<<it.first<<", ";
-                 }
+    // Iterate over the relationships associated with the specified node
+    auto relIt = relationships.find(name);
+    if (relIt != relationships.end()) {
+        bool found = false; // To track if any related nodes are printed
+        for (const auto& it : relIt->second) {
+            // If ALL is specified, print all relationships
+            if (relations.empty() || 
+                (relations.size() == 1 && relations[0] == "ALL") || 
+                (std::find(relations.begin(), relations.end(), it.second->relation) != relations.end())) {
+                cout << "{\"node\": \"" << it.first << "\", \"relationship\": \"" << it.second->relation << "\"}, ";
+                found = true;
             }
-            cout<<endl;
-         
-       }
-       else{
-        cout <<"name:"<<name<<" not exist.";
-       }    
-       
-   }
-           
-    void deleteNode(const string label, const string name){
+        }
+        if (found) {
+            cout << "\b\b"; // Remove the last comma and space
+        } else {
+            cout << "{\"message\": \"No related nodes found for the specified relationship.\"}";
+        }
+    } else {
+        cout << "{\"message\": \"No relationships found for this node.\"}";
+    }
+
+    cout << "]}" << endl; // Closing JSON array and object
+}
+
+
+ /*       void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
                 // 1. Remove all outgoing relationships from this node
                   relationships.erase(name);
