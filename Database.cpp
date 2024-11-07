@@ -1,8 +1,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include <sstream> // For stringstream
-#include <iomanip> // For std::setw and std::setfill
+#include <sstream> 
+#include <iomanip> 
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
@@ -343,6 +343,51 @@ public:
          << name1 << "\" and \"" << name2 << "\"." << endl;
 }
 
+    void getRelationshipProperty(const string& name1, const string& name2, const vector<string>& keys) { 
+    // Check if there are relationships for name1
+    if (relationships.find(name1) == relationships.end()) {
+        cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
+        return;
+    }
+
+    // Check if there is a specific relationship from name1 to name2
+    auto& relatedNodes = relationships[name1];
+    if (relatedNodes.find(name2) == relatedNodes.end()) {
+        cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
+        return;
+    }
+
+    // Retrieve the relationship
+    Relationship* relationship = relatedNodes[name2];
+    if (!relationship) {
+        cout << "Error: Relationship object is null." << endl;
+        return;
+    }
+
+    // If "ALL" is the only key, display all properties
+    if (keys.size() == 1 && keys[0] == "ALL") {
+        relationship->displayRelationship();
+    } else {
+        // Output properties in JSON-like format
+        cout << "{\n  \"Relationship\": \"" << relationship->relation << "\",\n  \"Properties\": {\n";
+        bool first = true; // Flag to manage commas between properties
+        for (const string& key : keys) {
+            string value = relationship->getProperty(key);
+            if (!value.empty()) {
+                if (!first) {
+                    cout << ",\n"; // Add comma for all but the first element
+                }
+                cout << "    \"" << key << "\": \"" << value << "\"";
+                first = false;
+            } else {
+                cout << "    // Property \"" << key << "\" not found\n";
+            }
+        }
+        cout << "\n  }\n}\n";
+    }
+}
+
+    
     void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(relationships.find(name)!=relationships.end()){
         //iterating over nodes that are connected to given name.
@@ -362,19 +407,6 @@ public:
        
    }
            
-    void getRelation(const string& name1, const string& name2){
-    
-    //checking name1 or name2 exists or not.
-          if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
-                     
-             return relationships[name1][name2]->displayRelationship();
-          }
-          else{
-            cout<<"Relation not exists";
-          }
-
-   }
-
     void deleteNode(const string label, const string name){
              if(nodes.find(name)!=nodes.end()){
                 // 1. Remove all outgoing relationships from this node
@@ -538,12 +570,12 @@ public:
             return;
         }
 
-        // Extract and trim the name
+        // Extract and trim the `name`
         string name = query.substr(nameStart, nameEnd - nameStart);
         name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
 
-        // Extract and trim the keys string
+        // Extract and trim the `keys` string
         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
         keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
@@ -760,21 +792,3 @@ public:
 };
 
 int main()
-{
-    Graph g;
-
-    while(true){
-
-    string query;
-    getline(cin,query);
-
-    if(query=="end") {break;}
-    else{     
-        g.interpretQuery(query);
-    }
-
-
-   }
-   
-    return 0;
-}
