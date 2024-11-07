@@ -1,0 +1,47 @@
+// Add nodes with labels and names
+ADD_ENTITY{Person,John_Doe}
+ADD_ENTITY{Person,Jane_Smith}
+ADD_ENTITY{Person,Bob_Johnson}
+ADD_ENTITY{Company,Acme_Corp}
+
+// Add properties to nodes
+ADD_PROPERTY{Jane_Smith,Age:30,Height:65}
+ADD_PROPERTY{John_Doe,Age:35,Height:70,Weight:150}
+ADD_PROPERTY{Bob_Johnson,Age:29,Height:68,Weight:140}
+
+// Retrieve properties from nodes
+GET_INFO{John_Doe,ALL}          // Get all properties of John_Doe
+GET_INFO{Jane_Smith,Age}        // Get specific property (Age) of Jane_Smith
+
+// Delete properties from nodes
+DELETE_INFO{John_Doe,ALL}       // Clear all properties of John_Doe
+DELETE_INFO{Jane_Smith,Age}     // Delete Age property from Jane_Smith
+
+// Retrieve nodes by label
+GET_LABELED{Person}             // Get all nodes with the label "Person"
+
+// Create relationships
+ADD_r{John_Doe,Jane_Smith,Friends}
+ADD_r{John_Doe,Bob_Johnson,Friends}
+ADD_r{Jane_Smith,Acme_Corp,Employee}
+
+// Add properties to relationships
+ADD_r_PROPERTY{John_Doe,Jane_Smith,Since:2010,Type:Close_Friend}
+
+// Retrieve relationship properties
+GET_r_INFO{John_Doe,Jane_Smith,ALL}    // Get all properties of relationship "Friends" between John_Doe and Jane_Smith
+
+// Delete specific relationship properties
+DELETE_r_INFO{John_Doe,Jane_Smith,Type}    // Remove "Type" property from relationship "Friends" between John_Doe and Jane_Smith
+
+// Find related nodes
+FIND{John_Doe,Friends}             // Find all nodes related to John_Doe by "Friends" relationship
+FIND{Jane_Smith,ALL}               // Find all nodes related to Jane_Smith
+
+// Delete entities and relationships
+DELETE_ENTITY{Person,John_Doe}     // Delete node John_Doe
+DELETE_r{Jane_Smith,Acme_Corp,Employee}    // Delete "Employee" relationship between Jane_Smith and Acme_Corp
+
+// Retrieve nodes by properties
+GET{Age:30,Height:65}              // Get nodes with properties Age=30 and Height=65
+
