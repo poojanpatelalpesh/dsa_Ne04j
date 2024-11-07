@@ -87,7 +87,7 @@ public:
 
 
 class Relationship
-{
+{ 
 public:
     // This class represents a relationship between two nodes, like "friends", "purchased", "likes", etc.
     string relation;
@@ -153,6 +153,17 @@ public:
     }
 };
 
+// Custom hash function for pairs
+struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator() (const std::pair<T1,T2>& pair) const {
+        auto hash1 = std::hash<T1>{}(pair.first);
+        auto hash2 = std::hash<T2>{}(pair.second);
+        return hash1 ^ hash2; // Combine hashes
+    }
+};
+
+
 class Graph
 {
 
@@ -163,11 +174,11 @@ class Graph
     // Each label (e.g., "Person") maps to a set of Node pointers that have that label.
     unordered_map<string, unordered_set<Node*>> labelIndex;
 
-    // Stores relationships between nodes, keyed by "from node name" and "to node name".
-    unordered_map<string, unordered_map<string, Relationship*>> relationships;
-
-public:
+    // Stores relationships from a node to a set of pairs (to node name, Relationship*).
+    unordered_map<string, unordered_set<pair<string, Relationship*>, pair_hash>> relationships;
    
+public:
+    
     void addNode(const string& label, const string& name) {
     // Check if a node with the same name already exists
     if (nodes.find(name) != nodes.end()) {
@@ -180,7 +191,7 @@ public:
     nodes[name] = newNode;
 
     // Insert the node into labelIndex for efficient lookup by label
-    labelIndex[label].insert(newNode);
+    labelIndex[label].insert(newNode); 
   }
 
     void addNodeProperty(const string& name, const string& key, const string& value) {
@@ -226,7 +237,7 @@ public:
     cout << "\n  }\n";
     cout << "}" << endl;
    }
- 
+  
     void deleteNodeProperty(const string& name, const vector<string>& keys) {
     // Check if node exists
     if (nodes.find(name) == nodes.end()) {
@@ -301,36 +312,47 @@ public:
         return; // Exit the function if either node does not exist
     }
 
+    // Create a pair to represent the relationship
+    pair<string, Relationship*> relationshipPair = { nodeName2, new Relationship(relationshipType) };
+
     // Check if the relationship already exists
-    auto it = relationships[nodeName1].find(nodeName2);
-    if (it != relationships[nodeName1].end()) {
+    auto& fromSet = relationships[nodeName1]; // Get the set of relationships for nodeName1
+    auto it = fromSet.find(relationshipPair);
+
+    if (it != fromSet.end()) {
         // Update the existing relationship type
         it->second->relation = relationshipType; // Update the relationship type
         cout << "Updated relationship between " << nodeName1 << " and " << nodeName2 << " to " << relationshipType << "." << endl;
     } else {
-        // Create a new relationship
-        Relationship* newRelationship = new Relationship(relationshipType);
-
-        // Store the relationship in the relationships map
-        relationships[nodeName1][nodeName2] = newRelationship;
+        // Add the new relationship to the set
+        fromSet.insert(relationshipPair);
         cout << "Added relationship between " << nodeName1 << " and " << nodeName2 << " as " << relationshipType << "." << endl;
     }
 }
 
     void addRelationshipProperty(const string& name1, const string& name2, const string& key, const string& value) {
-    // Check if the nodes and relationship exist in the graph
+    // Check if there are relationships for name1
     if (relationships.find(name1) == relationships.end()) {
         cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
         return;
     }
-   
-    if (relationships[name1].find(name2) == relationships[name1].end()) {
+
+    // Get the set of relationships for name1
+    auto& fromSet = relationships[name1];
+
+    // Find the relationship to name2
+    auto it = std::find_if(fromSet.begin(), fromSet.end(), [&](const auto& relationshipPair) {
+        return relationshipPair.first == name2; // Match the second node
+    });
+
+    // Check if the relationship exists
+    if (it == fromSet.end()) {
         cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
         return;
     }
 
-    // Retrieve the existing relationship between name1 and name2
-    Relationship* relationship = relationships[name1][name2];
+    // Retrieve the existing relationship object
+    Relationship* relationship = it->second; // Get the Relationship* from the found pair
     if (!relationship) {
         cout << "Error: Relationship object is null." << endl;
         return;
@@ -338,7 +360,7 @@ public:
 
     // Set or update the specified property of the relationship
     relationship->setProperty(key, value);
-    cout << "Property \"" << key << "\" set to \"" << value << "\" for relationship between \""
+    cout << "Property \"" << key << "\" set to \"" << value << "\" for relationship between \"" 
          << name1 << "\" and \"" << name2 << "\"." << endl;
 }
 
@@ -349,15 +371,22 @@ public:
         return;
     }
 
-    // Check if there is a specific relationship from name1 to name2
-    auto& relatedNodes = relationships[name1];
-    if (relatedNodes.find(name2) == relatedNodes.end()) {
+    // Get the set of relationships for name1
+    const auto& fromSet = relationships[name1];
+
+    // Find the specific relationship to name2
+    auto it = std::find_if(fromSet.begin(), fromSet.end(), [&](const auto& relationshipPair) {
+        return relationshipPair.first == name2; // Match the second node
+    });
+
+    // Check if the relationship exists
+    if (it == fromSet.end()) {
         cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
         return;
     }
 
-    // Retrieve the relationship
-    Relationship* relationship = relatedNodes[name2];
+    // Retrieve the relationship object
+    Relationship* relationship = it->second; // Get the Relationship* from the found pair
     if (!relationship) {
         cout << "Error: Relationship object is null." << endl;
         return;
@@ -393,33 +422,43 @@ public:
         return;
     }
 
-    // Check if there is a specific relationship from name1 to name2
-    auto& relatedNodes = relationships[name1];
-    if (relatedNodes.find(name2) == relatedNodes.end()) {
+    // Get the set of relationships for name1
+    const auto& fromSet = relationships[name1];
+
+    // Find the specific relationship to name2
+    auto it = std::find_if(fromSet.begin(), fromSet.end(), [&](const auto& relationshipPair) {
+        return relationshipPair.first == name2; // Match the second node
+    });
+
+    // Check if the relationship exists
+    if (it == fromSet.end()) {
         cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
         return;
     }
 
-    // Retrieve the existing relationship between name1 and name2
-    Relationship* relationship = relatedNodes[name2];
+    // Retrieve the relationship object
+    Relationship* relationship = it->second; // Get the Relationship* from the found pair
     if (!relationship) {
         cout << "Error: Relationship object is null." << endl;
         return;
     }
 
-    // If the only key in keys is "ALL", clear all properties
+    // If "ALL" is the only key, clear all properties
     if (keys.size() == 1 && keys[0] == "ALL") {
         relationship->clearProperties();
+        cout << "All properties for the relationship between \"" << name1 << "\" and \"" << name2 << "\" have been cleared." << endl;
     } else {
         // Otherwise, remove each specified property by key
         for (const string& key : keys) {
             relationship->removeProperty(key);
+            cout << "Property \"" << key << "\" has been removed from the relationship between \"" 
+                 << name1 << "\" and \"" << name2 << "\"." << endl;
         }
-        cout << "specified Properties" << " has been removed." << endl;
     }
 }
 
-    void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
+
+ /*   void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(relationships.find(name)!=relationships.end()){
         //iterating over nodes that are connected to given name.
          cout<<"related Nodes to " <<name<<" are : ";
@@ -445,7 +484,7 @@ public:
 
                // 2. Remove all incoming relationships to this node
                 for (auto &it : relationships) {
-                       it.second.erase(name);
+           //            it.second.erase(name);
                     }
              
               // 3.remove node from labelIndex.
@@ -467,20 +506,20 @@ public:
              
    }
 
-    void deleteReation(const string& name1, const string& name2, const string& relationtype ){
+ void deleteReation(const string& name1, const string& name2, const string& relationtype ){
           //checking name1 or name2 exists or not.
           if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
             //getting relationship
              Relationship* rel = relationships[name1][name2];
              //checking if relation type match or not.
-             if(rel->relation==relationtype){
+             if(rel->relation==relationtype){ 
                  //first clearing all properties a relation have
                  rel->properties.clear();
 
                  //now deleting relation itself
                  delete rel;
                  
-                 relationships[name1].erase(name2);
+           //      relationships[name1].erase(name2);
 
                  //[what if name1 only have one relation with name2?]
                  if (relationships[name1].empty()) {
@@ -497,10 +536,10 @@ public:
           else {
              cout<<"Nodes not found"<<endl;
           }
-   
+    
    }
    //[what if we want to delete all relationship?]
-
+*/
     void interpretQuery(const string& query){
        
        //check for ADD_ENTITY query
@@ -517,7 +556,7 @@ public:
 
              // Extract the content inside the braces
              string entityData = query.substr(openBrace + 1, closeBrace - openBrace - 1);
-       
+        
              // Split the entity data by comma
              int commaPos = entityData.find(",");
              if (commaPos == string::npos) {
@@ -538,7 +577,7 @@ public:
               // Call the method to add the node
               addNode(label, name);
        }
-       
+        
        // Check for ADD_PROPERTY query
        else if (query.find("ADD_PROPERTY{") == 0) {
               int openBrace = query.find("{");
@@ -580,12 +619,12 @@ public:
                   // Trim whitespace from key and value
                   key.erase(0, key.find_first_not_of(" \n\r\t"));
                   key.erase(key.find_last_not_of(" \n\r\t") + 1);
-                  value.erase(0, value.find_first_not_of(" \n\r\t"));
+                  value.erase(0, value.find_first_not_of(" \n\r\t")); 
                   value.erase(value.find_last_not_of(" \n\r\t") + 1);
 
                   // Add the property to the node
                   addNodeProperty(name, key, value); // Assuming label is not needed here, or can be set to a default value
-                 
+                  
              }
                
                return; // Exit the function after processing ADD_PROPERTY
@@ -693,7 +732,7 @@ public:
                cout << "Error: Malformed GET_LABELED query - missing closing brace." << endl;
                return;
            }
-   
+    
            // Extract the label
            string label = query.substr(labelStart, labelEnd - labelStart);
    
@@ -710,22 +749,22 @@ public:
            // Retrieve nodes by label and print them in JSON format
             getNodesByLabel(label);
       }
-     
+      
        //check for ADD_r query
        else if (query.find("ADD_r{") == 0) {
              // Find the start and end of the curly braces
              int startPos = query.find("{") + 1; // Position just after '{'
              int endPos = query.find("}");
-   
+    
              // Check if curly braces are correctly placed
              if (endPos == string::npos) {
                  cout << "Error: Malformed ADD_r query - missing closing brace." << endl;
                  return;
              }
-   
+    
              // Extract the content between the braces
              string content = query.substr(startPos, endPos - startPos);
-   
+    
              // Split the content by commas
             stringstream ss(content);
             string name1, name2, relation;
@@ -760,7 +799,7 @@ public:
             // Extracting the main part of the query
             int nameStart = query.find("{") + 1;
             int nameEnd = query.find(",", nameStart);
-       
+        
             if (nameEnd == string::npos) {
                 cout << "Error: Malformed ADD_r_PROPERTY query - missing comma after Name1." << endl;
                 return;
@@ -806,7 +845,7 @@ public:
                   cout << "Error: Empty key or value in property pair \"" << pair << "\"." << endl;
                return;
                }
- 
+  
               // Add or update the relationship property
               addRelationshipProperty(name1, name2, key, value);
           }
@@ -936,7 +975,7 @@ int main()
     getline(cin,query);
 
     if(query=="end") {break;}
-    else{    
+    else{     
         g.interpretQuery(query);
     }
 
