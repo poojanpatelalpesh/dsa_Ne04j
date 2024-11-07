@@ -692,7 +692,63 @@ public:
             addRelationship(name1, name2, relation);
       }
  
-       
+       //check for ADD_r_PROPERTY query
+       else if (query.find("ADD_r_PROPERTY{") == 0) {
+            // Extracting the main part of the query
+            int nameStart = query.find("{") + 1;
+            int nameEnd = query.find(",", nameStart);
+        
+            if (nameEnd == string::npos) {
+                cout << "Error: Malformed ADD_r_PROPERTY query - missing comma after Name1." << endl;
+                return;
+            }
+
+            string name1 = query.substr(nameStart, nameEnd - nameStart);
+            int name2Start = nameEnd + 1;
+            int name2End = query.find(",", name2Start);
+
+            if (name2End == string::npos) {
+                        cout << "Error: Malformed ADD_r_PROPERTY query - missing comma after Name2." << endl;
+               return;
+            }
+
+             string name2 = query.substr(name2Start, name2End - name2Start);
+             string propertiesStr = query.substr(name2End + 1, query.find("}") - name2End - 1);
+
+             if (name1.empty() || name2.empty() || propertiesStr.empty()) {
+                 cout << "Error: Malformed ADD_r_PROPERTY query - Name1, Name2, or properties missing." << endl;
+                 return;
+             }
+         
+             // Parsing key-value pairs
+             stringstream ss(propertiesStr);
+             string pair;
+          while (getline(ss, pair, ',')) {
+                 int colonPos = pair.find(':');
+                 if (colonPos == string::npos) {
+                     cout << "Error: Malformed property pair \"" << pair << "\" - missing colon." << endl;
+                     return;
+                 }
+
+              string key = pair.substr(0, colonPos);
+              string value = pair.substr(colonPos + 1);
+
+              // Remove extra whitespace from key and value
+              key.erase(0, key.find_first_not_of(" \t\n\r"));
+              key.erase(key.find_last_not_of(" \t\n\r") + 1);
+              value.erase(0, value.find_first_not_of(" \t\n\r"));
+              value.erase(value.find_last_not_of(" \t\n\r") + 1);
+
+              if (key.empty() || value.empty()) {
+                  cout << "Error: Empty key or value in property pair \"" << pair << "\"." << endl;
+               return;
+               }
+  
+              // Add or update the relationship property
+              addRelationshipProperty(name1, name2, key, value);
+          }
+      }
+
           
        else {
         cout<<"Error: Unsupported query type."<<endl;
