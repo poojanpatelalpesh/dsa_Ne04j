@@ -607,7 +607,8 @@ public:
         // Call the deleteNodeProperty function with the name and keys
         deleteNodeProperty(name, keys);
       }
-  
+       
+       //check for GET_LABELED query
        else if (query.find("GET_LABELED{") == 0) {
             // Parse GET_LABELED query
             int labelStart = query.find("{") + 1; // Start after the opening brace
@@ -635,8 +636,53 @@ public:
            // Retrieve nodes by label and print them in JSON format
             getNodesByLabel(label);
       }
+      
+       //check for ADD_r query
+       else if (query.find("ADD_r{") == 0) {
+             // Find the start and end of the curly braces
+             int startPos = query.find("{") + 1; // Position just after '{'
+             int endPos = query.find("}");
+    
+             // Check if curly braces are correctly placed
+             if (endPos == string::npos) {
+                 cout << "Error: Malformed ADD_r query - missing closing brace." << endl;
+                 return;
+             }
+    
+             // Extract the content between the braces
+             string content = query.substr(startPos, endPos - startPos);
+    
+             // Split the content by commas
+            stringstream ss(content);
+            string name1, name2, relation;
 
-        
+            // Extract Name1
+            getline(ss, name1, ',');
+             // Extract Name2
+             getline(ss, name2, ',');
+             // Extract Relation
+             getline(ss, relation, ',');
+
+              // Check for empty values and trim whitespace
+              if (name1.empty() || name2.empty() || relation.empty()) {
+                  cout << "Error: Malformed ADD_r query - one or more parameters are missing." << endl;
+                  return;
+             }
+
+             // Trim whitespace (if necessary)
+             name1.erase(0, name1.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+             name1.erase(name1.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+             name2.erase(0, name2.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+             name2.erase(name2.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+             relation.erase(0, relation.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+             relation.erase(relation.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+ 
+             // Call the function to add the relationship
+            addRelationship(name1, name2, relation);
+      }
+ 
+       
+          
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
