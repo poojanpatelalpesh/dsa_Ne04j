@@ -111,7 +111,6 @@ public:
         auto it = properties.find(key);
         if (it != properties.end()) {
             properties.erase(it); // Remove the specific property
-            cout << "Property \"" << key << "\" has been removed." << endl;
         } else {
             cout << "Property \"" << key << "\" does not exist." << endl;
         }
@@ -384,6 +383,39 @@ public:
             }
         }
         cout << "\n  }\n}\n";
+    }
+}
+
+    void deleteRelationshipProperty(const string& name1, const string& name2, const vector<string>& keys) {
+    // Check if there are relationships for name1
+    if (relationships.find(name1) == relationships.end()) {
+        cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
+        return;
+    }
+
+    // Check if there is a specific relationship from name1 to name2
+    auto& relatedNodes = relationships[name1];
+    if (relatedNodes.find(name2) == relatedNodes.end()) {
+        cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
+        return;
+    }
+
+    // Retrieve the existing relationship between name1 and name2
+    Relationship* relationship = relatedNodes[name2];
+    if (!relationship) {
+        cout << "Error: Relationship object is null." << endl;
+        return;
+    }
+
+    // If the only key in `keys` is "ALL", clear all properties
+    if (keys.size() == 1 && keys[0] == "ALL") {
+        relationship->clearProperties();
+    } else {
+        // Otherwise, remove each specified property by key
+        for (const string& key : keys) {
+            relationship->removeProperty(key);
+        }
+        cout << "specified Properties" << " has been removed." << endl;
     }
 }
 
@@ -851,21 +883,3 @@ public:
 };
 
 int main()
-{
-    Graph g;
-
-    while(true){
-
-    string query;
-    getline(cin,query);
-
-    if(query=="end") {break;}
-    else{     
-        g.interpretQuery(query);
-    }
-
-
-   }
-   
-    return 0;
-}
