@@ -1,87 +1,105 @@
-Graph Database Implementation:
+# Query-Based Graph Management System #
 
-This project is a simple graph database implementation inspired by Neo4j, written in C++. It supports essential CRUD operations and basic graph traversal queries. The database allows users to create, read, update, and delete nodes (entities) and relationships (edges) between them.
+# Overview #
 
-Features
-1. Node Management: Create, update, and delete nodes with customizable properties.
-2. Relationship Management: Establish and manage relationships between nodes, including custom properties for relationships.
-3. Label Indexing: Fast querying of nodes based on labels.
-4. Query Language: Basic query support similar to Cypher, including CREATE and MATCH commands.
-5. Property Management: Add or update properties for both nodes and relationships.
+This project implements a query-based graph management system with nodes, relationships, and properties using a custom structure inspired by Neo4j. The program enables the creation, manipulation, and deletion of nodes and relationships using predefined query formats.
 
-Classes:
+# Key Notes: #
 
-Node:
-Represents an entity in the graph, holding:
-1. Label: A type for the entity (e.g., Person, Product).
-2. Name: A unique identifier for the node.
-3. Properties: Key-value pairs to store additional information about the node.
+1. Name as ID: Each node's name acts as its unique identifier, so no two nodes can share the same name.
 
-Relationship:
-Represents a connection between two nodes, containing:
-1. Relation Type: The type of relationship (e.g., FRIENDS, PURCHASED).
-2. Properties: Key-value pairs to store additional information about the relationship.
+2. Naming Format: Names should follow the format First_Last (e.g., John_Doe), with each word capitalized.
 
-Graph:
-Manages the overall structure of the database, including:
-1. Node Storage: A map to hold all nodes.
-2. Label Index: An index for fast lookups by label.
-3. Relationship Storage: A map of maps to manage relationships between nodes.
+3. Relationships: Each pair of nodes can have only one relationship. Only single-sided relationships are considered.
 
-Usage:
+# Components: #
 
-Building and Running:
-To compile and run the code:
+1. Node Class:
+   
+   a. updateProperty: Known as addNodeProperty in the graph class; updates or adds properties to a node.
 
-1. Clone the repository:
+   b. getProperty: Known as getNodeProperty in the graph class; retrieves specific properties.
 
-*bash*
+   c. printProperties: Known as getNodeProperty with ALL as the argument in the graph class; retrieves all properties.
 
-git clone https://github.com/yourusername/graph-database.git
-cd graph-database
+   d. deleteProperty: Known as deleteNodeProperty in the graph class; deletes a specified property.
 
-2. Compile the code:
+   e. clearProperties: Known as deleteNodeProperty with ALL as the argument in the graph class; deletes all properties.
 
-*bash*
+3. Relationship Class:
 
-g++ -o graph_database main.cpp
+   a. setProperty: Known as addRelationshipProperty in the graph class; adds or updates properties of a relationship.
 
-3. Run the executable:
+   b. removeProperty: Known as deleteRelationshipProperty in the graph class; deletes a specific property of a relationship.
 
-*bash*
+   c. clearProperties: Known as deleteRelationshipProperty with ALL as the argument in the graph class; deletes all properties of a relationship.
 
-./graph_database
+   d. getProperty: Known as getRelationshipProperty in the graph class; retrieves a specific property of a relationship.
 
-Example Commands:
+   e. displayRelationship: Known as getRelationshipProperty with ALL as the argument in the graph class; retrieves all properties of a relationship.
+   
+5. Graph Class
+The Graph class manages all nodes and relationships and includes methods for querying and manipulating the graph's structure.
 
-1. Create a Node:
+# Queries and Functions #
 
-*css*
+1. Node Management:
+   
+   a. ADD_ENTITY{Label,Name}: Adds a node with the specified label and name.
 
-CREATE (n:Person {name: 'Alice'})
+   b. ADD_PROPERTY{Name,key1:value1,key2:value2...}: Adds or updates properties for a specified node.
 
-2. Set Node Property:
+   c. GET_INFO{Name,ALL}: Retrieves all properties of a specified node.
 
-*php*
+   d. GET_INFO{Name,Key1,Key2,...}: Retrieves specific properties of a node.
 
-CREATE (n:Person {name: 'Alice'}) SET n.age="30"
+   e. DELETE_INFO{Name,ALL}: Deletes all properties of a specified node.
 
-3. Match Nodes:
+   f. DELETE_INFO{Name,Key1,Key2,...}: Deletes specified properties of a node.
 
-*css*
+   g. GET_LABELED{Label}: Retrieves nodes with a specified label.
+   
+3. Relationship Management:
+   
+   a. ADD_r{Name1,Name2,Relation}: Adds or updates a relationship between two nodes.
 
-MATCH (n:Person {name: 'Alice'})
+   b. ADD_r_PROPERTY{Name1,Name2,key1:value1,key2:value2...}: Adds or updates properties of a relationship.
 
-Query Syntax:
+   c. GET_r_INFO{Name1,Name2,ALL}: Retrieves all properties of a specified relationship.
 
-CREATE: Add new nodes or set properties.
+   d. GET_r_INFO{Name1,Name2,Key1,Key2...}: Retrieves specific properties of a relationship.
 
-MATCH: Retrieve nodes based on label and properties.
+   e. DELETE_r_INFO{Name1,Name2,ALL}: Deletes all properties of a relationship.
 
-Limitations:
-1. The current implementation does not handle concurrent modifications or transactions.
-2. There is no support for complex queries beyond basic matching and property retrieval.
-3. Memory management for dynamic allocations can be improved with smart pointers.
+   f. DELETE_r_INFO{Name1,Name2,Key1,Key2...}: Deletes specified properties of a relationship.
+   
+5. Node Retrieval:
 
-Contributing:
-Contributions are welcome! If you find a bug or have suggestions for improvements, please open an issue or submit a pull request.
+   a. FIND{Name,Relation1,Relation2...}: Finds related nodes based on specified relationships.
+
+   b. FIND{Name,ALL}: Finds all nodes related to a specified node.
+
+   c. DELETE_ENTITY{Label,Name}: Deletes a specified node.
+
+   d. DELETE_r{Name1,Name2,Relation}: Deletes a specified relationship between two nodes.
+
+   e. DELETE_r{Name1,Name2,ALL}: Deletes all relationships between two nodes.
+
+   f. GET{key1:value1,key2:value2...}: Retrieves all nodes with the specified properties.
+
+# Conclusion: #
+
+This project offers a streamlined way to manage and interact with graph data using custom, query-based commands. With the ability to create nodes and relationships, add and retrieve properties, and perform targeted searches, this system is a powerful tool for simulating complex network relationships. By following the structured query format and naming conventions, users can explore diverse data scenarios effectively.
+
+# Future Enhancements: #
+
+This system provides a foundational structure for graph management but could be further extended in several ways:
+
+1. Bidirectional Relationships: Currently, relationships are single-sided; adding support for bidirectional relationships could enhance versatility.
+
+2. Enhanced Query Parsing: Implementing more complex query parsing with error handling could improve user experience.
+
+3. Graph Visualization: Adding a visualization layer could help users see relationships more intuitively.
+
+This project exemplifies how custom graph structures can be tailored to specific data management needs while being simple and user-friendly. Thank you for exploring this system!
+   
