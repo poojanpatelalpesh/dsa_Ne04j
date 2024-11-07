@@ -1,8 +1,8 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include <sstream> 
-#include <iomanip> 
+#include <sstream> // For stringstream
+#include <iomanip> // For std::setw and std::setfill
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
@@ -387,7 +387,6 @@ public:
     }
 }
 
-    
     void RetrieveRelatedNodes(const string& name,const string& relation){       //[what if we want to retrive all connected node irrespective of relationship?];
        if(relationships.find(name)!=relationships.end()){
         //iterating over nodes that are connected to given name.
@@ -780,8 +779,68 @@ public:
               addRelationshipProperty(name1, name2, key, value);
           }
       }
+       
+       //check for GET_r_INFO query
+       else if (query.find("GET_r_INFO{") == 0) {
+             // Parse the query to extract Name1, Name2, and keys
+             int start = query.find("{") + 1;
+             int end = query.find("}", start);
+             if (end == string::npos) {
+                 cout << "Error: Malformed GET_r_INFO query - missing closing '}'." << endl;
+                 return;
+             }
 
-          
+             string content = query.substr(start, end - start);
+
+             // Find the first comma, which separates Name1 and Name2
+             int commaPos1 = content.find(",");
+             if (commaPos1 == string::npos) {
+                 cout << "Error: Malformed GET_r_INFO query - missing first comma." << endl;
+                 return;
+             }
+
+              string name1 = content.substr(0, commaPos1);
+              name1.erase(0, name1.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+              name1.erase(name1.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+
+              // Find the second comma, which separates Name2 and the keys or "ALL"
+              int commaPos2 = content.find(",", commaPos1 + 1);
+              if (commaPos2 == string::npos) {
+                  cout << "Error: Malformed GET_r_INFO query - missing second comma." << endl;
+                  return;
+              }
+
+              string name2 = content.substr(commaPos1 + 1, commaPos2 - commaPos1 - 1);
+              name2.erase(0, name2.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+              name2.erase(name2.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+
+               // Extract keys or "ALL"
+              string keysStr = content.substr(commaPos2 + 1);
+              keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+              keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+
+                 vector<string> keys;
+                 if (keysStr == "ALL") {
+                     keys.push_back("ALL");
+             } else {
+                     stringstream ss(keysStr);
+                  string key;
+            while (getline(ss, key, ',')) {
+             key.erase(0, key.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+             key.erase(key.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+             if (!key.empty()) {
+                keys.push_back(key);
+             } else {
+                cout << "Error: Malformed GET_r_INFO query - empty key found." << endl;
+                return;
+            }
+           }
+           }
+
+             // Retrieve relationship properties
+               getRelationshipProperty(name1, name2, keys);
+       }
+
        else {
         cout<<"Error: Unsupported query type."<<endl;
        }
@@ -792,3 +851,21 @@ public:
 };
 
 int main()
+{
+    Graph g;
+
+    while(true){
+
+    string query;
+    getline(cin,query);
+
+    if(query=="end") {break;}
+    else{     
+        g.interpretQuery(query);
+    }
+
+
+   }
+   
+    return 0;
+}
