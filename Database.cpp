@@ -492,35 +492,60 @@ public:
     cout << "]}" << endl; // Closing JSON array and object
 }
 
- /*       void deleteNode(const string label, const string name){
-             if(nodes.find(name)!=nodes.end()){
-                // 1. Remove all outgoing relationships from this node
-                  relationships.erase(name);
+     void deleteNode(const string& label, const string& name) {
+    // Step 1: Check if the node exists in the graph
+    auto nodeIt = nodes.find(name);
+    if (nodeIt == nodes.end()) {
+        cout << "{\"error\": \"Node with name \\\"" << name << "\\\" not found.\"}" << endl;
+        return;
+    }
 
-               // 2. Remove all incoming relationships to this node
-                for (auto &it : relationships) {
-           //            it.second.erase(name);
-                    }
-             
-              // 3.remove node from labelIndex.
-              if (labelIndex.find(label) != labelIndex.end()) {
-                          labelIndex[label].erase(nodes[name]);  // Remove the node from its label set.
+    // Step 2: Remove all outgoing relationships from this node
+    auto relIt = relationships.find(name);
+    if (relIt != relationships.end()) {
+        for (const auto& relationPair : relIt->second) {
+            // Find the related node's incoming relationship set and remove this node from it
+            auto& targetRelSet = relationships[relationPair.first];
+            targetRelSet.erase({name, relationPair.second});
+            delete relationPair.second; // Clean up the dynamically allocated Relationship object
+        }
+        relationships.erase(relIt); // Erase all relationships from this node
+    }
 
-                     // If no nodes remain with this label, erase the label itself
-                        if (labelIndex[label].empty()) {
-                        labelIndex.erase(label);
-                       }
-                }
-             
-              // 4. Remove the node from nodes map
-                  delete nodes[name]; // Clean up the dynamically allocated memory
-                  nodes.erase(name);
+    // Step 3: Remove all incoming relationships to this node
+    for (auto& relEntry : relationships) {
+        auto& targetSet = relEntry.second;
+        for (auto it = targetSet.begin(); it != targetSet.end(); ) {
+            if (it->first == name) {
+                delete it->second; // Clean up the dynamically allocated Relationship object
+                it = targetSet.erase(it); // Remove the relationship and move to the next element
+            } else {
+                ++it;
+            }
+        }
+    }
 
-                 }
-            else cout<<"Node not found";
-             
-   }
+    // Step 4: Remove the node from labelIndex
+    auto labelIt = labelIndex.find(label);
+    if (labelIt != labelIndex.end()) {
+        labelIt->second.erase(nodeIt->second); // Remove the node pointer from its label set
 
+        // If no nodes remain with this label, erase the label itself
+        if (labelIt->second.empty()) {
+            labelIndex.erase(labelIt);
+        }
+    }
+
+    // Step 5: Remove the node from nodes map and delete it
+    delete nodeIt->second; // Clean up the dynamically allocated Node object
+    nodes.erase(nodeIt);
+
+    // JSON feedback indicating successful deletion
+    cout << "{\"status\": \"success\", \"message\": \"Node \\\"" << name << "\\\" and all associated relationships removed successfully.\"}" << endl;
+}
+
+
+ /*  
  void deleteReation(const string& name1, const string& name2, const string& relationtype ){
           //checking name1 or name2 exists or not.
           if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
@@ -656,12 +681,12 @@ public:
             return;
         }
 
-        // Extract and trim the name
+        // Extract and trim the `name`
         string name = query.substr(nameStart, nameEnd - nameStart);
         name.erase(0, name.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         name.erase(name.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
 
-        // Extract and trim the keys string
+        // Extract and trim the `keys` string
         string keysStr = query.substr(nameEnd + 1, query.find("}") - nameEnd - 1);
         keysStr.erase(0, keysStr.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         keysStr.erase(keysStr.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
@@ -1030,21 +1055,3 @@ public:
 };
 
 int main()
-{
-    Graph g;
-
-    while(true){
-
-    string query;
-    getline(cin,query);
-
-    if(query=="end") {break;}
-    else{     
-        g.interpretQuery(query);
-    }
-
-
-   }
-   
-    return 0;
-}
