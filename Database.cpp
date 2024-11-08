@@ -1045,9 +1045,51 @@ public:
         retrieveRelatedNodes(name, relations);
     } 
        
-       else {
-        cout<<"Error: Unsupported query type."<<endl;
+       //check for DELETE_ENTITY query
+       else if (query.find("DELETE_ENTITY{") == 0) {
+            // Extract the content between the curly braces
+            int start = query.find("{") + 1;
+            int end = query.find("}", start);
+            if (end == string::npos) {
+                cout << "{\"error\": \"Malformed DELETE_ENTITY query - missing closing brace.\"}" << endl;
+                return;
+            }
+
+            string content = query.substr(start, end - start);
+
+            // Split content by commas to separate label and name
+            stringstream ss(content);
+            string item;
+            vector<string> parts;
+            while (getline(ss, item, ',')) {
+                // Trim whitespace around each item
+                item.erase(0, item.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
+                item.erase(item.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
+                if (item.empty()) {
+                    cout << "{\"error\": \"Malformed DELETE_ENTITY query - empty fields found.\"}" << endl;
+                    return;
+                }
+                parts.push_back(item);
+            }
+
+            // Ensure we have both a label and name
+            if (parts.size() < 2) {
+                cout << "{\"error\": \"DELETE_ENTITY query requires both a label and a name.\"}" << endl;
+                return;
+            }
+
+           // Extract the label and name
+            string label = parts[0];
+            string name = parts[1];
+
+            // Call deleteNode with parsed values
+            deleteNode(label, name);
        }
+ 
+      else {
+        cout << "{\"error\": \"Invalid query format.\"}" << endl;
+        }
+
 
 
    }
@@ -1055,3 +1097,21 @@ public:
 };
 
 int main()
+{
+    Graph g;
+
+    while(true){
+
+    string query;
+    getline(cin,query);
+
+    if(query=="end") {break;}
+    else{     
+        g.interpretQuery(query);
+    }
+
+
+   }
+   
+    return 0;
+}
