@@ -43,7 +43,7 @@ class InteractiveFrontend:
             executable_path = './Database' if os.path.isfile('./Database') else './Database.exe'
             
             if not os.path.isfile(executable_path):
-                self.output_text.insert(tk.END, "Error: Executable 'final' not found.\n")
+                self.output_text.insert(tk.END, "Error: Executable 'Database' not found.\n")
                 return
             
             # Start the C++ program
@@ -95,7 +95,7 @@ class InteractiveFrontend:
     def send_query(self):
         """Send input to the C++ program"""
         if not self.process or self.process.poll() is not None:
-            self.output_text.insert(tk.END, "The program has ended.\nThe Database has been erased.")
+            self.output_text.insert(tk.END, "The program has ended.\nThe Database has been erased.\n")
             return
         
         query = self.input_text.get("1.0", tk.END).strip()
