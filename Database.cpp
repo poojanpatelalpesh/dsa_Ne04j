@@ -367,7 +367,7 @@ public:
     void getRelationshipProperty(const string& name1, const string& name2, const vector<string>& keys) {
     // Check if there are relationships for name1
     if (relationships.find(name1) == relationships.end()) {
-        cout << "Error: No relationships found for node \"" << name1 << "\"." << endl;
+        cout << "{\"error\": \"No relationships found for node \"" << name1 << "\".\"}" << endl;
         return;
     }
 
@@ -381,14 +381,14 @@ public:
 
     // Check if the relationship exists
     if (it == fromSet.end()) {
-        cout << "Error: No relationship exists between \"" << name1 << "\" and \"" << name2 << "\"." << endl;
+        cout << "{\"error\": No relationship exists between \"" << name1 << "\" and \"" << name2 << "\".\"}" << endl;
         return;
     }
 
     // Retrieve the relationship object
     Relationship* relationship = it->second; // Get the Relationship* from the found pair
     if (!relationship) {
-        cout << "Error: Relationship object is null." << endl;
+        cout << "{\"error\": Relationship object is null.\"}" << endl;
         return;
     }
 
@@ -397,7 +397,7 @@ public:
         relationship->displayRelationship();
     } else {
         // Output properties in JSON-like format
-        cout << "{\n  \"Relationship\": \"" << relationship->relation << "\",\n  \"Properties\": {\n";
+        cout << "{{\n  \"Relationship\": \"" << relationship->relation << "\",\n  \"Properties\": {\n";
         bool first = true; // Flag to manage commas between properties
         for (const string& key : keys) {
             string value = relationship->getProperty(key);
@@ -411,7 +411,7 @@ public:
                 cout << "    // Property \"" << key << "\" not found\n";
             }
         }
-        cout << "\n  }\n}\n";
+        cout << "\n  }\n}}\n";
     }
 }
 
@@ -457,7 +457,7 @@ public:
     }
 }
     
-     void retrieveRelatedNodes(const string& name, const vector<string>& relations) {
+    void retrieveRelatedNodes(const string& name, const vector<string>& relations) {
     // Check if the specified node exists in the graph
     auto nodeIt = nodes.find(name);
     if (nodeIt == nodes.end()) {
@@ -492,11 +492,11 @@ public:
     cout << "]}" << endl; // Closing JSON array and object
 }
 
-     void deleteNode(const string& label, const string& name) {
+    void deleteNode(const string& label, const string& name) {
     // Step 1: Check if the node exists in the graph
     auto nodeIt = nodes.find(name);
     if (nodeIt == nodes.end()) {
-        cout << "{\"error\": \"Node with name \\\"" << name << "\\\" not found.\"}" << endl;
+        cout << "{\"error\": \"Node with name \"" << name << "\" not found.\"}" << endl;
         return;
     }
 
@@ -541,46 +541,63 @@ public:
     nodes.erase(nodeIt);
 
     // JSON feedback indicating successful deletion
-    cout << "{\"status\": \"success\", \"message\": \"Node \\\"" << name << "\\\" and all associated relationships removed successfully.\"}" << endl;
+    cout << "{\"status\": \"success\", \"message\": \"Node \"" << name << "\" and all associated relationships removed successfully.\"}" << endl;
 }
 
+    void deleteRelation(const string& name1, const string& name2, const string& relationType = "ALL") {
+    // Check if both nodes exist in the graph and if a relationship from name1 to name2 exists
+    auto node1It = relationships.find(name1);
+    if (node1It == relationships.end()) {
+        cout << "{\"error\": \"Node \"" << name1 << "\" not found.\"}" << endl;
+        return;
+    }
 
- /*  
- void deleteReation(const string& name1, const string& name2, const string& relationtype ){
-          //checking name1 or name2 exists or not.
-          if(relationships.find(name1)!=relationships.end() && relationships[name1].find(name2)!=relationships[name2].end()){
-            //getting relationship
-             Relationship* rel = relationships[name1][name2];
-             //checking if relation type match or not.
-             if(rel->relation==relationtype){ 
-                 //first clearing all properties a relation have
-                 rel->properties.clear();
+    auto& relSet = node1It->second;
+    bool relationshipFound = false;
 
-                 //now deleting relation itself
-                 delete rel;
-                 
-           //      relationships[name1].erase(name2);
+    // Iterate through relationships to find the specific relationship or all
+    for (auto it = relSet.begin(); it != relSet.end(); ) {
+        if (it->first == name2) {
+            Relationship* rel = it->second;
 
-                 //[what if name1 only have one relation with name2?]
-                 if (relationships[name1].empty()) {
-                         relationships.erase(name1);
-                     }
+            // Check if the relationship type matches or if "ALL" is specified
+            if (relationType == "ALL" || rel->relation == relationType) {
+                relationshipFound = true;
+                
+                // Clear relationship properties
+                rel->properties.clear();
 
-                //[what if name1 and name2 have multiple relation]
-             }
-            else{
-               cout<<"rlation between "<<name1<<" and "<<name2<<" is not of type "<<relationtype<<endl;
+                // Delete the relationship itself
+                delete rel;
+
+                // Erase the relationship entry from the set
+                it = relSet.erase(it);
+            } else {
+                ++it;
             }
+        } else {
+            ++it;
+        }
+    }
 
-          }
-          else {
-             cout<<"Nodes not found"<<endl;
-          }
-    
-   }
-   //[what if we want to delete all relationship?]
-*/
- 
+    // If no relationship was found, print a message
+    if (!relationshipFound) {
+        cout << "{\"error\": \"No matching relationship of type \"" << relationType 
+             << "\" found between \"" << name1 << "\" and \"" << name2 << "\".}" << endl;
+        return;
+    }
+
+    // If name1 has no remaining relationships, remove it from relationships
+    if (relSet.empty()) {
+        relationships.erase(name1);
+    }
+
+    // Feedback for successful deletion
+    cout << "{\"status\": \"success\", \"message\": \"Relationship(s) between \"" 
+         << name1 << "\" and \"" << name2 << "\" of type \"" 
+         << relationType << "\" deleted successfully.\"}" << endl;
+}
+
     void interpretQuery(const string& query){
        
        //check for ADD_ENTITY query
@@ -959,7 +976,7 @@ public:
     int start = query.find("{") + 1;
     int end = query.find("}", start);
     if (end == string::npos) {
-        cout << "Error: Malformed DELETE_r_INFO query - missing closing brace." << endl;
+        cout << "{\"error\": \"Malformed DELETE_r_INFO query - missing closing brace.\"}" << endl;
         return;
     }
 
@@ -974,7 +991,7 @@ public:
         item.erase(0, item.find_first_not_of(" \t\n\r"));  // Trim leading whitespace
         item.erase(item.find_last_not_of(" \t\n\r") + 1);  // Trim trailing whitespace
         if (item.empty()) {
-            cout << "Error: Malformed DELETE_r_INFO query - empty fields found." << endl;
+            cout << "{\"error\": \"Malformed DELETE_r_INFO query - empty fields found.\"}" << endl;
             return;
         }
         parts.push_back(item);
@@ -982,7 +999,7 @@ public:
 
     // Validate that we have at least 3 parts: name1, name2, and one key or "ALL"
     if (parts.size() < 3) {
-        cout << "Error: DELETE_r_INFO query requires at least a source node, target node, and at least one key or 'ALL'." << endl;
+        cout << "{\"error\": \"DELETE_r_INFO query requires at least a source node, target node, and at least one key or 'ALL'.\"}" << endl;
         return;
     }
 
@@ -1085,14 +1102,55 @@ public:
             // Call deleteNode with parsed values
             deleteNode(label, name);
        }
- 
-      else {
+  
+       //check for DELETE_r query
+       else if (query.find("DELETE_r{") == 0) {
+    // Extract the content between the curly braces
+    int start = query.find("{") + 1;
+    int end = query.find("}", start);
+    if (end == string::npos) {
+        cout << "{\"error\": \"Malformed DELETE_r query - missing closing brace.\"}" << endl;
+        return;
+    }
+
+    string content = query.substr(start, end - start);
+
+    // Split content by commas to separate name1, name2, and relationship type (or "ALL")
+    stringstream ss(content);
+    string item;
+    vector<string> parts;
+    while (getline(ss, item, ',')) {
+        // Trim whitespace around each item
+        item.erase(0, item.find_first_not_of(" \t\n\r"));
+        item.erase(item.find_last_not_of(" \t\n\r") + 1);
+        if (item.empty()) {
+            cout << "{\"error\": \"Malformed DELETE_r query - empty fields found.\"}" << endl;
+            return;
+        }
+        parts.push_back(item);
+    }
+
+    // Validate that we have exactly 3 parts: name1, name2, and relationship type (or "ALL")
+    if (parts.size() != 3) {
+        cout << "{\"error\": \"DELETE_r query requires exactly two node names and a relationship type (or 'ALL').\"}" << endl;
+        return;
+    }
+
+    // Extract name1, name2, and relation type
+    string name1 = parts[0];
+    string name2 = parts[1];
+    string relationType = parts[2];
+
+    // Call deleteRelation with parsed values
+    deleteRelation(name1, name2, relationType);
+}
+  
+       else {
         cout << "{\"error\": \"Invalid query format.\"}" << endl;
         }
 
-
-
    }
+
    
 };
 
