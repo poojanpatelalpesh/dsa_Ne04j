@@ -1,4 +1,4 @@
-# Query-Based Graph Management System #
+#In Memory Graph Database Similar to NEO4J #
 
 # Overview #
 
